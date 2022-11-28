@@ -1,4 +1,4 @@
-import express, { Application } from "express";
+import express, { Application, NextFunction, Request, Response } from "express";
 import http from "http";
 import hpp from "hpp";
 import cors from "cors";
@@ -14,6 +14,10 @@ import config from "./config";
 import container from "./inversify.config";
 import { RegistrableController } from "./api/registrable.controller";
 import TYPES from "./types";
+import {
+  CustomError,
+  IErrorResponse,
+} from "./shared/globals/helpers/errorHandler";
 
 export interface IAppServer {
   start(): void;
@@ -83,7 +87,30 @@ export default class AppServer implements IAppServer {
     );
   }
 
-  private globalErrorHandler(app: Application): void {}
+  private globalErrorHandler(app: Application): void {
+    // catch request to non existing urls
+    app.all("*", (req: Request, res: Response) => {
+      res
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ message: `${req.originalUrl} not found`, status: "error" });
+    });
+
+    // use global error handler
+    app.use(
+      (
+        error: IErrorResponse,
+        _req: Request,
+        res: Response,
+        next: NextFunction
+      ) => {
+        console.log("error: ", error);
+        if (error instanceof CustomError) {
+          return res.status(error.statusCode).json(error.serializeErrors());
+        }
+        next();
+      }
+    );
+  }
 
   private async startServer(app: Application): Promise<void> {
     try {
