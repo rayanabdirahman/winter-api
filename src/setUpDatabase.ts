@@ -1,8 +1,6 @@
 import mongoose from "mongoose";
 import config from "./config";
 
-const MONGO_URI = `${config.DB_URI}`;
-
 const connectToDbClient = (uri: string = `${config.DB_URI}`) => {
   const connect = async () => {
     try {

@@ -15,9 +15,10 @@ class Config implements IConfig {
   public COOKIE_SESSION_KEY_ONE: string | undefined;
   public COOKIE_SESSION_KEY_TWO: string | undefined;
   public CLIENT_URL: string | undefined;
+  public REDIS_HOST: string | undefined;
 
-  private readonly DEFAULT_DB_URI = "mongodb://127.0.0.1:27017/winter";
   private readonly DEFAULT_API_URL = "api/v1";
+  private readonly DEFAULT_DB_URI = "mongodb://127.0.0.1:27017/winter";
 
   constructor() {
     this.PORT = process.env.PORT || `5000`;
@@ -29,6 +30,7 @@ class Config implements IConfig {
     this.COOKIE_SESSION_KEY_ONE = process.env.COOKIE_SESSION_KEY_ONE || "";
     this.COOKIE_SESSION_KEY_TWO = process.env.COOKIE_SESSION_KEY_TWO || "";
     this.CLIENT_URL = process.env.CLIENT_URL || "";
+    this.REDIS_HOST = process.env.REDIS_HOST || "";
   }
 
   validate(): void {
