@@ -11,6 +11,9 @@ import { createClient } from "redis";
 import { createAdapter } from "@socket.io/redis-adapter";
 import "express-async-errors";
 import config from "./config";
+import container from "./inversify.config";
+import { RegistrableController } from "./api/registrable.controller";
+import TYPES from "./types";
 
 export interface IAppServer {
   start(): void;
@@ -62,7 +65,23 @@ export default class AppServer implements IAppServer {
     app.use(express.urlencoded({ extended: true, limit: "50mb" }));
   }
 
-  private registerRoutes(app: Application): void {}
+  private registerRoutes(app: Application): void {
+    // register api routes
+    const controllers: RegistrableController[] =
+      container.getAll<RegistrableController>(TYPES.Controller);
+    controllers.forEach((controller) => controller.registerRoutes(app));
+
+    // test api route
+    app.get(
+      `/${config.API_URL}`,
+      async (
+        req: express.Request,
+        res: express.Response
+      ): Promise<express.Response> => {
+        return res.json({ "Winter API": "Version 1" });
+      }
+    );
+  }
 
   private globalErrorHandler(app: Application): void {}
 
