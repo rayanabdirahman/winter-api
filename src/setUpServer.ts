@@ -18,10 +18,13 @@ import {
   CustomError,
   IErrorResponse,
 } from "./shared/globals/helpers/errorHandler";
+import loggerHelper from "./shared/globals/helpers/logger";
 
 export interface IAppServer {
   start(): void;
 }
+
+const logger = loggerHelper.create("[setUpServer]");
 
 export default class AppServer implements IAppServer {
   private app: Application;
@@ -31,7 +34,7 @@ export default class AppServer implements IAppServer {
   }
 
   public start(): void {
-    console.debug(`[AppServer]: starting app server`);
+    logger.debug(`starting app server`);
     this.useSecurityMiddleware(this.app);
     this.useStandardMiddleware(this.app);
     this.registerRoutes(this.app);
@@ -103,7 +106,7 @@ export default class AppServer implements IAppServer {
         res: Response,
         next: NextFunction
       ) => {
-        console.log("error: ", error);
+        logger.error("error: ", error);
         if (error instanceof CustomError) {
           return res.status(error.statusCode).json(error.serializeErrors());
         }
@@ -119,13 +122,13 @@ export default class AppServer implements IAppServer {
       this.startHttpServer(httpServer);
       this.socketIOConnections(socketIOServer);
     } catch (error) {
-      console.error(`[startServer]: Failed to start server: ${error}`);
+      logger.error(`[startServer]: Failed to start server: ${error}`);
     }
   }
 
   private startHttpServer(httpServer: http.Server): void {
     httpServer.listen(config.PORT, () =>
-      console.info(`App running on PORT: ${config.PORT}`)
+      logger.info(`App running on PORT: ${config.PORT}`)
     );
   }
 

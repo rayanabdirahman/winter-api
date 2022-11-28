@@ -1,13 +1,15 @@
 import mongoose from "mongoose";
 import config from "./config";
+import loggerHelper from "./shared/globals/helpers/logger";
+const logger = loggerHelper.create("[setUpDatabase]");
 
 const connectToDbClient = (uri: string = `${config.DB_URI}`) => {
   const connect = async () => {
     try {
       await mongoose.connect(uri);
-      console.info(`Successfully connected to database ✅`);
+      logger.info(`Successfully connected to database ✅`);
     } catch (error) {
-      console.error(`Failed to connect to database 🛑 : ${error}`);
+      logger.error(`Failed to connect to database 🛑 : ${error}`);
       return process.exit(1);
     }
   };
