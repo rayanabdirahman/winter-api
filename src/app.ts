@@ -13,7 +13,7 @@ class Application implements IApplication {
   public init(): void {
     logger.debug('Initialising app');
 
-    // load environment variables
+    // setup configs and load environment variables
     this.loadConfig();
 
     // connect to database
@@ -27,6 +27,7 @@ class Application implements IApplication {
 
   private loadConfig(): void {
     config.validate();
+    config.cloudinary();
   }
 }
 

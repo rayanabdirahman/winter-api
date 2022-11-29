@@ -1,8 +1,10 @@
 import dotenv from 'dotenv';
 dotenv.config({});
+import cloudinary from 'cloudinary';
 
 interface IConfig {
   validate(): void;
+  cloudinary(): void;
 }
 
 class Config implements IConfig {
@@ -16,6 +18,9 @@ class Config implements IConfig {
   public COOKIE_SESSION_KEY_TWO: string | undefined;
   public CLIENT_URL: string | undefined;
   public REDIS_HOST: string | undefined;
+  public CLOUDINARY_CLOUD_NAME: string | undefined;
+  public CLOUDINARY_API_KEY: string | undefined;
+  public CLOUDINARY_API_SECRET: string | undefined;
 
   private readonly DEFAULT_API_URL = 'api/v1';
   private readonly DEFAULT_DB_URI = 'mongodb://127.0.0.1:27017/winter';
@@ -31,6 +36,9 @@ class Config implements IConfig {
     this.COOKIE_SESSION_KEY_TWO = process.env.COOKIE_SESSION_KEY_TWO || '';
     this.CLIENT_URL = process.env.CLIENT_URL || '';
     this.REDIS_HOST = process.env.REDIS_HOST || '';
+    this.CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || '';
+    this.CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || '';
+    this.CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '';
   }
 
   validate(): void {
@@ -39,6 +47,14 @@ class Config implements IConfig {
         throw new Error(`Configuration ${key} is undefined`);
       }
     }
+  }
+
+  cloudinary(): void {
+    cloudinary.v2.config({
+      cloud_name: this.CLOUDINARY_CLOUD_NAME,
+      api_key: this.CLOUDINARY_API_KEY,
+      api_secret: this.CLOUDINARY_API_SECRET
+    });
   }
 }
 
