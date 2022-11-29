@@ -10,18 +10,16 @@ import { Server } from 'socket.io';
 import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
 import 'express-async-errors';
-import config from './config';
-import container from './inversify.config';
+import config from '@root/config';
+import container from '@root/inversify.config';
 import { RegistrableController } from './api/registrable.controller';
-import TYPES from './types';
-import { CustomError, IErrorResponse } from './shared/globals/helpers/errorHandler';
-import loggerHelper from './shared/globals/helpers/logger';
-
+import TYPES from '@root/types';
+import { CustomError, IErrorResponse } from '@globals/helpers/errorHandler';
+import loggerHelper from '@globals/helpers/logger';
+const logger = loggerHelper.create('[setUpServer]');
 export interface IAppServer {
   start(): void;
 }
-
-const logger = loggerHelper.create('[setUpServer]');
 
 export default class AppServer implements IAppServer {
   private app: Application;

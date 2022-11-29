@@ -1,8 +1,8 @@
 import express, { Express } from 'express';
-import AppServer from './setUpServer';
-import connectToDbClient from './setUpDatabase';
-import config from './config';
-import loggerHelper from './shared/globals/helpers/logger';
+import AppServer from '@root/setUpServer';
+import connectToDbClient from '@root/setUpDatabase';
+import config from '@root/config';
+import loggerHelper from '@globals/helpers/logger';
 const logger = loggerHelper.create('[app]');
 
 interface IApplication {

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import config from './config';
-import loggerHelper from './shared/globals/helpers/logger';
+import config from '@root/config';
+import loggerHelper from '@globals/helpers/logger';
 const logger = loggerHelper.create('[setUpDatabase]');
 
 const connectToDbClient = (uri = `${config.DB_URI}`) => {
