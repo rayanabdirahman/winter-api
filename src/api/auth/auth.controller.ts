@@ -1,6 +1,6 @@
 import { Application, Request, Response } from 'express';
 import { injectable } from 'inversify';
-import config from 'src/config';
+import config from '@root/config';
 import { RegistrableController } from '../registrable.controller';
 
 @injectable()

@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "dev": "nodemon -r tsconfig-paths/register src/app.ts | ./node_modules/.bin/bunyan",
+    "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
     "lint:check": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "prettier:check": "prettier --check 'src/**/*.{ts, json}'",
@@ -30,6 +31,7 @@
     "redis": "^4.5.1",
     "reflect-metadata": "^0.1.13",
     "socket.io": "^4.5.4",
+    "tsc-alias": "^1.7.1",
     "ttypescript": "^1.5.13",
     "typescript": "^4.9.3",
     "typescript-transform-paths": "^3.4.4"

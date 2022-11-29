@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { Container } from 'inversify';
-import TYPES from './types';
+import TYPES from '@root/types';
 import { RegistrableController } from './api/registrable.controller';
 import AuthController from './api/auth/auth.controller';
 
