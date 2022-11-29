@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { Container } from 'inversify';
 import TYPES from '@root/types';
 import { RegistrableController } from './features/registrable.controller';
-import AuthController from './features/auth/auth.controller';
+import AuthController from '@auth/auth.controller';
 
 const container = new Container();
 
