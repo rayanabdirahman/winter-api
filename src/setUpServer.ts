@@ -12,7 +12,7 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import 'express-async-errors';
 import config from '@root/config';
 import container from '@root/inversify.config';
-import { RegistrableController } from './api/registrable.controller';
+import { RegistrableController } from './features/registrable.controller';
 import TYPES from '@root/types';
 import { CustomError, IErrorResponse } from '@globals/helpers/errorHandler';
 import loggerHelper from '@globals/helpers/logger';
