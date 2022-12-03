@@ -1,4 +1,5 @@
-import { Document, ObjectId } from 'mongoose';
+import { Document } from 'mongoose';
+import { ObjectId } from 'mongodb';
 
 declare global {
   namespace Express {
@@ -33,8 +34,17 @@ export interface SignUpData {
   _id: ObjectId;
   uId: string;
   email: string;
+  password: string;
   username: string;
   avatarColor: string;
+}
+
+export interface SignUpModel {
+  username: string;
+  email: string;
+  password: string;
+  avatarColor: string;
+  avatarImage: string;
 }
 
 export interface AuthJob {

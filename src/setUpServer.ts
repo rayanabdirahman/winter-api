@@ -78,7 +78,9 @@ export default class AppServer implements IAppServer {
   private globalErrorHandler(app: Application): void {
     // catch request to non existing urls
     app.all('*', (req: Request, res: Response) => {
-      res.status(HTTP_STATUS.NOT_FOUND).json({ message: `${req.originalUrl} not found`, status: 'error' });
+      res
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ status: 'error', statusCode: HTTP_STATUS.NOT_FOUND, message: `${req.originalUrl} not found` });
     });
 
     // use global error handler
