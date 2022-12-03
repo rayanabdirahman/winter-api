@@ -113,4 +113,10 @@ temp/
 # macOS
 .DS_Store
 
+# endpoints test folder
+endpoints/
+
+# redis dump file
+dump.rdb
+
 # End of https://www.gitignore.io/api/node
