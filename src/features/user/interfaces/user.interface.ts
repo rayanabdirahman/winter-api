@@ -12,8 +12,8 @@ export interface UserDocument extends Document {
   postsCount: number;
   blocked: mongoose.Types.ObjectId[];
   blockedBy: mongoose.Types.ObjectId[];
-  followersCound: number;
-  followingCound: number;
+  followersCount: number;
+  followingCount: number;
   notifications: Notification;
   social: SocialLinks;
   bgImage: string;
@@ -35,8 +35,8 @@ export interface User {
   postsCount: number;
   blocked: mongoose.Types.ObjectId[];
   blockedBy: mongoose.Types.ObjectId[];
-  followersCound: number;
-  followingCound: number;
+  followersCount: number;
+  followingCount: number;
   notifications: Notification;
   social: SocialLinks;
   bgImage: string;

@@ -1,13 +1,14 @@
 import { ObjectId } from 'mongodb';
-import { BadRequestError } from './../../../shared/globals/helpers/errorHandler';
+import { UserDocument } from '@user/interfaces/user.interface';
+import { BadRequestError } from '@globals/helpers/errorHandler';
 import { AuthDocument, SignUpModel } from '@auth/interfaces/auth.interface';
 import { inject, injectable } from 'inversify';
 import { AuthRepository } from '@auth/repositories/auth.repository';
 import TYPES from '@root/types';
 import loggerHelper from '@globals/helpers/logger';
-import textTransformHelper from '@globals/helpers/textTransform';
 import cloudinaryHelper from '@globals/helpers/cloudinary';
 import nanoIdHelper from '@globals/helpers/nanoId';
+import userCache from '@services/redis/user.cache';
 const logger = loggerHelper.create('[AuthService]');
 
 export interface AuthService {
@@ -36,8 +37,6 @@ export default class AuthServiceImpl implements AuthService {
         ...model,
         _id: new ObjectId(),
         uId: nanoIdHelper.generateInt(),
-        username: textTransformHelper.capitaliseFirstLetter(model.username),
-        email: textTransformHelper.toLowerCase(model.email),
         createdAt: new Date()
       } as unknown as AuthDocument;
 
@@ -45,6 +44,11 @@ export default class AuthServiceImpl implements AuthService {
       if (!cloudinaryResponse?.public_id) {
         throw new BadRequestError('Error when uploading avatar image to cloudinary. Try again');
       }
+
+      // add to redis cache
+      const userDataForRedisCache = this.formateUserDataForRedisCache(userId, authDocument);
+      userDataForRedisCache.profilePicture = `https://res.cloudinary.com/daqewh79b/image/upload/v${cloudinaryResponse.version}/${userId}.png`;
+      await userCache.save(`${userId}`, authDocument.uId, userDataForRedisCache);
 
       return model as any;
     } catch (error) {
@@ -55,8 +59,40 @@ export default class AuthServiceImpl implements AuthService {
 
   private async isUsernameOrEmailTaken(username: string, email: string): Promise<boolean> {
     const user = await this.authRepository.findOne({
-      $or: [{ username: textTransformHelper.capitaliseFirstLetter(username) }, { email: textTransformHelper.toLowerCase(email) }]
+      $or: [{ username }, { email }]
     });
     return user ? Promise.resolve(true) : Promise.resolve(false);
+  }
+
+  private formateUserDataForRedisCache(userObjId: ObjectId, data: AuthDocument): UserDocument {
+    return {
+      _id: userObjId,
+      authId: data._id,
+      uId: data.uId,
+      username: data.username,
+      email: data.email,
+      password: data.password,
+      avatarColor: data.avatarColor,
+      profilePicture: '',
+      blocked: [],
+      blockedBy: [],
+      bgImage: '',
+      bgImageId: '',
+      followersCount: 0,
+      followingCount: 0,
+      postsCount: 0,
+      notifications: {
+        message: true,
+        reaction: true,
+        comment: true,
+        follows: true
+      },
+      social: {
+        facebook: '',
+        instagram: '',
+        twitter: '',
+        youtube: ''
+      }
+    } as unknown as UserDocument;
   }
 }

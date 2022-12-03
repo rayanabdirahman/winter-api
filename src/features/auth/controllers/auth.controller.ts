@@ -8,6 +8,7 @@ import signUpSchema from '@auth/validation/signup.schema';
 import { AuthService } from '@auth/services/auth.service';
 import TYPES from '@root/types';
 import { SignUpModel } from '@auth/interfaces/auth.interface';
+import textTransformHelper from '@globals/helpers/textTransform';
 
 @injectable()
 export default class AuthController implements RegistrableController {
@@ -24,7 +25,7 @@ export default class AuthController implements RegistrableController {
 
   @joiValidate(signUpSchema)
   async signUp(req: Request, res: Response): Promise<Response> {
-    const model: SignUpModel = { ...req.body };
+    const model: SignUpModel = { ...req.body, email: textTransformHelper.toLowerCase(req.body.email) };
 
     await this.authService.signUp(model);
 
