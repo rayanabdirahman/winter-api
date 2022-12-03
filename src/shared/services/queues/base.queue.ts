@@ -5,6 +5,9 @@ import { ExpressAdapter } from '@bull-board/express';
 import Logger from 'bunyan';
 import config from '@root/config';
 import loggerHelper from '@globals/helpers/logger';
+import { AuthJob } from '@auth/interfaces/auth.interface';
+
+type BaseJobDataType = AuthJob;
 
 let bullAdapters: BullAdapter[] = [];
 export let serverAdapter: ExpressAdapter;
@@ -38,5 +41,13 @@ export default abstract class BaseQueue {
     this.queue.on('global:stalled', (jobId: Job) => {
       this.logger.info(`[Job ${jobId}]: stalled`);
     });
+  }
+
+  protected addJob(name: string, data: BaseJobDataType): void {
+    this.queue.add(name, data, { attempts: 3, backoff: { type: 'fixed', delay: 5000 } });
+  }
+
+  protected processJob(name: string, concurrency: number, callback: Queue.ProcessCallbackFunction<void>): void {
+    this.queue.process(name, concurrency, callback);
   }
 }

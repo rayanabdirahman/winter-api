@@ -1,14 +1,16 @@
 import { ObjectId } from 'mongodb';
+import { inject, injectable } from 'inversify';
+import { omit } from 'lodash';
 import { UserDocument } from '@user/interfaces/user.interface';
 import { BadRequestError } from '@globals/helpers/errorHandler';
 import { AuthDocument, SignUpModel } from '@auth/interfaces/auth.interface';
-import { inject, injectable } from 'inversify';
 import { AuthRepository } from '@auth/repositories/auth.repository';
 import TYPES from '@root/types';
 import loggerHelper from '@globals/helpers/logger';
 import cloudinaryHelper from '@globals/helpers/cloudinary';
 import nanoIdHelper from '@globals/helpers/nanoId';
 import userCache from '@services/redis/user.cache';
+import authQueue from '@services/queues/auth.queue';
 const logger = loggerHelper.create('[AuthService]');
 
 export interface AuthService {
@@ -49,6 +51,12 @@ export default class AuthServiceImpl implements AuthService {
       const userDataForRedisCache = this.formateUserDataForRedisCache(userId, authDocument);
       userDataForRedisCache.profilePicture = `https://res.cloudinary.com/daqewh79b/image/upload/v${cloudinaryResponse.version}/${userId}.png`;
       await userCache.save(`${userId}`, authDocument.uId, userDataForRedisCache);
+
+      // save user to database
+      // remove fields not required for user database
+      omit(userDataForRedisCache, ['uId', 'username', 'email', 'avatarColor', 'password']);
+      // add job to queue
+      authQueue.addAuthUserJob('addAuthUserToDB', { value: userDataForRedisCache });
 
       return model as any;
     } catch (error) {

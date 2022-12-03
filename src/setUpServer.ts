@@ -16,6 +16,7 @@ import { RegistrableController } from './features/registrable.controller';
 import TYPES from '@root/types';
 import { CustomError, IErrorResponse } from '@globals/helpers/errorHandler';
 import loggerHelper from '@globals/helpers/logger';
+import { serverAdapter } from '@services/queues/base.queue';
 const logger = loggerHelper.create('[setUpServer]');
 export interface IAppServer {
   start(): void;
@@ -73,6 +74,9 @@ export default class AppServer implements IAppServer {
     app.get(`/${config.API_URL}`, async (req: express.Request, res: express.Response): Promise<express.Response> => {
       return res.json({ 'Winter API': 'Version 1' });
     });
+
+    // route for bull queues
+    app.use('/queues', serverAdapter.getRouter());
   }
 
   private globalErrorHandler(app: Application): void {
