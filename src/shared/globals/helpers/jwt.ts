@@ -6,12 +6,12 @@ import loggerHelper from './logger';
 const logger = loggerHelper.create('JwtHelper');
 
 interface IJwtHelper {
-  sign(authObj: AuthDocument, userId: ObjectId): Promise<string>;
+  sign(authObj: AuthDocument, userId: string | ObjectId): Promise<string>;
   // decode(token: string): Promise<AuthPayload>;
 }
 
 const JwtHelper: IJwtHelper = {
-  async sign(authObj: AuthDocument, userId: ObjectId): Promise<string> {
+  async sign(authObj: AuthDocument, userId: string | ObjectId): Promise<string> {
     const payload: AuthPayload = {
       userId: userId as unknown as string,
       uId: authObj.uId,

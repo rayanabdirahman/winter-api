@@ -27,18 +27,18 @@ export interface AuthDocument extends Document {
   password: string;
   avatarColor: string;
   createdAt: Date;
-  comparePasswords: (password: string) => Promise<boolean>;
-  hashPasswords: (password: string) => Promise<string>;
+  comparePassword: (password: string) => Promise<boolean>;
+  hashPassword: (password: string) => Promise<string>;
 }
 
-export interface SignUpData {
-  _id: ObjectId;
-  uId: string;
-  email: string;
-  password: string;
-  username: string;
-  avatarColor: string;
-}
+// export interface SignUpData {
+//   _id: ObjectId;
+//   uId: string;
+//   email: string;
+//   password: string;
+//   username: string;
+//   avatarColor: string;
+// }
 
 export interface SignUpModel {
   username: string;
@@ -46,6 +46,11 @@ export interface SignUpModel {
   password: string;
   avatarColor: string;
   avatarImage: string;
+}
+
+export interface SignInModel {
+  email: string;
+  password: string;
 }
 
 export interface AuthJob {

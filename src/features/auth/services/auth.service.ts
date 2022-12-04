@@ -1,9 +1,8 @@
 import { ObjectId } from 'mongodb';
 import { inject, injectable } from 'inversify';
-import { omit } from 'lodash';
 import { UserDocument } from '@user/interfaces/user.interface';
 import { BadRequestError } from '@globals/helpers/errorHandler';
-import { AuthDocument, SignUpModel } from '@auth/interfaces/auth.interface';
+import { AuthDocument, SignInModel, SignUpModel } from '@auth/interfaces/auth.interface';
 import { AuthRepository } from '@auth/repositories/auth.repository';
 import TYPES from '@root/types';
 import loggerHelper from '@globals/helpers/logger';
@@ -14,32 +13,37 @@ import { UserQueue, UserQueueName } from '@user/queues/user.queue';
 import JwtHelper from '@globals/helpers/jwt';
 import { CloudinaryService } from '@services/cloudinary/cloudinary.service';
 import { CloudinaryResponseType } from '@globals/helpers/cloudinary';
+import { UserRepository } from '@user/repositories/user.repository';
 const logger = loggerHelper.create('[AuthService]');
 
 export interface AuthService {
-  signUp(model: SignUpModel): Promise<string>;
+  signUp(model: SignUpModel): Promise<{ token: string; user: UserDocument }>;
+  signIn(model: SignInModel): Promise<{ token: string; user: UserDocument }>;
 }
 
 @injectable()
 export default class AuthServiceImpl implements AuthService {
   private authRepository: AuthRepository;
+  private userRepository: UserRepository;
   private authQueue: AuthQueue;
   private userQueue: UserQueue;
   private cloudinaryService: CloudinaryService;
 
   constructor(
     @inject(TYPES.AuthRepository) authRepository: AuthRepository,
+    @inject(TYPES.UserRepository) userRepository: UserRepository,
     @inject(TYPES.AuthQueue) authQueue: AuthQueue,
     @inject(TYPES.UserQueue) userQueue: UserQueue,
     @inject(TYPES.CloudinaryService) cloudinaryService: CloudinaryService
   ) {
     this.authRepository = authRepository;
+    this.userRepository = userRepository;
     this.authQueue = authQueue;
     this.userQueue = userQueue;
     this.cloudinaryService = cloudinaryService;
   }
 
-  async signUp(model: SignUpModel): Promise<string> {
+  async signUp(model: SignUpModel): Promise<{ token: string; user: UserDocument }> {
     try {
       // check if username or email is taken
       const isUserTaken = await this.isUsernameOrEmailTaken(model.username, model.email);
@@ -61,12 +65,53 @@ export default class AuthServiceImpl implements AuthService {
       const userDataForRedisCache = await this.addUserToRedis(userId, authDocument, cloudinaryResponse);
 
       // save auth and user documents to db using workers
-      await this.addUserAuthJobs(userDataForRedisCache);
+      await this.addUserAuthJobs(userDataForRedisCache, authDocument);
 
       // sign JWT token
-      return await JwtHelper.sign(authDocument, userId);
+      const token = await JwtHelper.sign(authDocument, userId);
+      return { token, user: userDataForRedisCache };
     } catch (error) {
       logger.error(`[UserService: signUp]: Unabled to create user: ${error}`);
+      throw error;
+    }
+  }
+
+  async signIn(model: SignInModel): Promise<{ token: string; user: UserDocument }> {
+    try {
+      // check if auth user with email exists
+      const existingAuthUser = await this.authRepository.findOneByEmail(model.email);
+      if (!existingAuthUser) {
+        throw new BadRequestError('Invalid credentials');
+      }
+
+      // check if passwords match
+      const doPasswordsMatch = await existingAuthUser.comparePassword(model.password);
+      if (!doPasswordsMatch) {
+        throw new BadRequestError('Invalid credentials');
+      }
+
+      // get user details using auth id
+      const user = await this.userRepository.findOneByAuthId(existingAuthUser._id);
+      if (!user) {
+        throw new BadRequestError('Cannot find user with these credentials');
+      }
+
+      // sign JWT token
+      const token = await JwtHelper.sign(existingAuthUser, user._id);
+
+      const mergedUserObj = {
+        ...user,
+        authId: existingAuthUser.id,
+        username: existingAuthUser.username,
+        email: existingAuthUser.email,
+        avatarColor: existingAuthUser.avatarColor,
+        uId: existingAuthUser.uId,
+        createdAt: existingAuthUser.createdAt
+      } as UserDocument;
+
+      return { token, user: mergedUserObj };
+    } catch (error) {
+      logger.error(`[UserService: signUp]: Unabled to sign in user: ${error}`);
       throw error;
     }
   }
@@ -78,18 +123,16 @@ export default class AuthServiceImpl implements AuthService {
     return userDataForRedisCache;
   }
 
-  private async addUserAuthJobs(user: UserDocument) {
-    // remove fields not required for user database
-    omit(user, ['uId', 'username', 'email', 'avatarColor', 'password']);
-    this.authQueue.addAuthUserJob(AuthQueueName.ADD_AUTH_USER, { value: user });
+  private async addUserAuthJobs(user: UserDocument, authUser: AuthDocument) {
+    this.authQueue.addAuthUserJob(AuthQueueName.ADD_AUTH_USER, { value: authUser });
     this.userQueue.addUserJob(UserQueueName.ADD_USER, { value: user });
   }
 
-  private async isUsernameOrEmailTaken(username: string, email: string): Promise<boolean> {
+  private async isUsernameOrEmailTaken(username: string, email: string): Promise<boolean | AuthDocument> {
     const user = await this.authRepository.findOne({
       $or: [{ username }, { email }]
     });
-    return user ? Promise.resolve(true) : Promise.resolve(false);
+    return user ? Promise.resolve(user) : Promise.resolve(false);
   }
 
   private formateUserDataForRedisCache(userId: ObjectId, data: AuthDocument): UserDocument {

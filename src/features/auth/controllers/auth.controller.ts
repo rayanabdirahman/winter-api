@@ -7,8 +7,9 @@ import joiValidate from '@globals/decorators/joi.decorator';
 import signUpSchema from '@auth/validation/signup.schema';
 import { AuthService } from '@auth/services/auth.service';
 import TYPES from '@root/types';
-import { SignUpModel } from '@auth/interfaces/auth.interface';
+import { SignInModel, SignUpModel } from '@auth/interfaces/auth.interface';
 import textTransformHelper from '@globals/helpers/textTransform';
+import signInSchema from '@auth/validation/signin.schema';
 
 @injectable()
 export default class AuthController implements RegistrableController {
@@ -17,22 +18,37 @@ export default class AuthController implements RegistrableController {
   constructor(@inject(TYPES.AuthService) authService: AuthService) {
     this.authService = authService;
     this.signUp = this.signUp.bind(this);
+    this.signIn = this.signIn.bind(this);
   }
 
   registerRoutes(app: Application): void {
     app.post(`/${config.API_URL}/auth/signup`, this.signUp);
+    app.post(`/${config.API_URL}/auth/signin`, this.signIn);
   }
 
   @joiValidate(signUpSchema)
   async signUp(req: Request, res: Response): Promise<Response> {
     const model: SignUpModel = { ...req.body, email: textTransformHelper.toLowerCase(req.body.email) };
 
-    const token = await this.authService.signUp(model);
+    const { token, user } = await this.authService.signUp(model);
 
     req.session = { jwt: token };
 
     return res
       .status(HTTP_STATUS.CREATED)
-      .json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User created successfully', data: { token } });
+      .json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User created successfully', data: { token, user } });
+  }
+
+  @joiValidate(signInSchema)
+  async signIn(req: Request, res: Response): Promise<Response> {
+    const model: SignInModel = { ...req.body, email: textTransformHelper.toLowerCase(req.body.email) };
+
+    const { token, user } = await this.authService.signIn(model);
+
+    req.session = { jwt: token };
+
+    return res
+      .status(HTTP_STATUS.OK)
+      .json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User signed in successfully', data: { token, user } });
   }
 }
