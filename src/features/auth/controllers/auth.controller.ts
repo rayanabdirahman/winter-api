@@ -19,11 +19,13 @@ export default class AuthController implements RegistrableController {
     this.authService = authService;
     this.signUp = this.signUp.bind(this);
     this.signIn = this.signIn.bind(this);
+    this.signOut = this.signOut.bind(this);
   }
 
   registerRoutes(app: Application): void {
     app.post(`/${config.API_URL}/auth/signup`, this.signUp);
     app.post(`/${config.API_URL}/auth/signin`, this.signIn);
+    app.get(`/${config.API_URL}/auth/signout`, this.signOut);
   }
 
   @joiValidate(signUpSchema)
@@ -50,5 +52,13 @@ export default class AuthController implements RegistrableController {
     return res
       .status(HTTP_STATUS.OK)
       .json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User signed in successfully', data: { token, user } });
+  }
+
+  async signOut(req: Request, res: Response): Promise<Response> {
+    req.session = null;
+
+    return res
+      .status(HTTP_STATUS.OK)
+      .json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User signed out successfully', data: {} });
   }
 }
