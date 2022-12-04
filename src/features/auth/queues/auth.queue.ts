@@ -4,6 +4,10 @@ import { AuthJob } from '@auth/interfaces/auth.interface';
 import { AuthWorker } from '@auth/workers/auth.worker';
 import TYPES from '@root/types';
 
+export enum AuthQueueName {
+  ADD_AUTH_USER = 'addAuthUserToDB'
+}
+
 export interface AuthQueue {
   addAuthUserJob(name: string, data: AuthJob): void;
 }
@@ -15,11 +19,10 @@ export default class AuthQueueImpl extends BaseQueue implements AuthQueue {
   constructor(@inject(TYPES.AuthWorker) authWorker: AuthWorker) {
     super('auth');
     this.authWorker = authWorker;
-    this.processJob('addAuthUserToDB', 5, this.authWorker.addAuthUserToDB);
+    this.processJob(AuthQueueName.ADD_AUTH_USER, 5, this.authWorker.addAuthUserToDB);
   }
 
   addAuthUserJob(name: string, data: AuthJob): void {
-    console.log(' AuthQueueImpl addAuthUserJob called');
     this.addJob(name, data);
   }
 }

@@ -10,6 +10,7 @@ import AuthWorkerImpl, { AuthWorker } from '@auth/workers/auth.worker';
 import UserRepositoryImpl, { UserRepository } from '@user/repositories/user.repository';
 import UserQueueImpl, { UserQueue } from '@user/queues/user.queue';
 import UserWorkerImpl, { UserWorker } from '@user/workers/user.worker';
+import { CloudinaryService, CloudinaryServiceImpl } from '@services/cloudinary/cloudinary.service';
 
 const container = new Container();
 
@@ -18,6 +19,7 @@ container.bind<RegistrableController>(TYPES.Controller).to(AuthController);
 
 // services
 container.bind<AuthService>(TYPES.AuthService).to(AuthServiceImpl);
+container.bind<CloudinaryService>(TYPES.CloudinaryService).to(CloudinaryServiceImpl);
 
 // repositories
 container.bind<AuthRepository>(TYPES.AuthRepository).to(AuthRepositoryImpl);

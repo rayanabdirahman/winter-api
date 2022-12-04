@@ -1,5 +1,6 @@
 const TYPES = {
   Controller: Symbol('Controller'),
+  CloudinaryService: Symbol('CloudinaryService'),
   AuthService: Symbol('AuthService'),
   AuthRepository: Symbol('AuthRepository'),
   AuthQueue: Symbol('AuthQueue'),

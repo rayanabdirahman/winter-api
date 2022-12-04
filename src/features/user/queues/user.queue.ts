@@ -3,6 +3,10 @@ import BaseQueue from '@services/queues/base.queue';
 import { UserWorker } from '@user/workers/user.worker';
 import TYPES from '@root/types';
 
+export enum UserQueueName {
+  ADD_USER = 'addUserToDB'
+}
+
 export interface UserQueue {
   addUserJob(name: string, data: any): void;
 }
@@ -14,7 +18,7 @@ export default class UserQueueImpl extends BaseQueue implements UserQueue {
   constructor(@inject(TYPES.UserWorker) userWorker: UserWorker) {
     super('auth');
     this.userWorker = userWorker;
-    this.processJob('addUserToDB', 5, this.userWorker.addUserToDB);
+    this.processJob(UserQueueName.ADD_USER, 5, this.userWorker.addUserToDB);
   }
 
   addUserJob(name: string, data: any): void {
