@@ -1,3 +1,4 @@
+import { AuthQueue } from './../queues/auth.queue';
 import { ObjectId } from 'mongodb';
 import { inject, injectable } from 'inversify';
 import { omit } from 'lodash';
@@ -10,22 +11,31 @@ import loggerHelper from '@globals/helpers/logger';
 import cloudinaryHelper from '@globals/helpers/cloudinary';
 import nanoIdHelper from '@globals/helpers/nanoId';
 import userCache from '@services/redis/user.cache';
-import authQueue from '@services/queues/auth.queue';
+import { UserQueue } from '@user/queues/user.queue';
+import JwtHelper from '@globals/helpers/jwt';
 const logger = loggerHelper.create('[AuthService]');
 
 export interface AuthService {
-  signUp(model: SignUpModel): Promise<AuthDocument>;
+  signUp(model: SignUpModel): Promise<string>;
 }
 
 @injectable()
 export default class AuthServiceImpl implements AuthService {
   private authRepository: AuthRepository;
+  private authQueue: AuthQueue;
+  private userQueue: UserQueue;
 
-  constructor(@inject(TYPES.AuthRepository) authRepository: AuthRepository) {
+  constructor(
+    @inject(TYPES.AuthRepository) authRepository: AuthRepository,
+    @inject(TYPES.AuthQueue) authQueue: AuthQueue,
+    @inject(TYPES.UserQueue) userQueue: UserQueue
+  ) {
     this.authRepository = authRepository;
+    this.authQueue = authQueue;
+    this.userQueue = userQueue;
   }
 
-  async signUp(model: SignUpModel): Promise<AuthDocument> {
+  async signUp(model: SignUpModel): Promise<string> {
     try {
       // check if username or email is taken
       const isUserTaken = await this.isUsernameOrEmailTaken(model.username, model.email);
@@ -47,7 +57,7 @@ export default class AuthServiceImpl implements AuthService {
         throw new BadRequestError('Error when uploading avatar image to cloudinary. Try again');
       }
 
-      // add to redis cache
+      // // add to redis cache
       const userDataForRedisCache = this.formateUserDataForRedisCache(userId, authDocument);
       userDataForRedisCache.profilePicture = `https://res.cloudinary.com/daqewh79b/image/upload/v${cloudinaryResponse.version}/${userId}.png`;
       await userCache.save(`${userId}`, authDocument.uId, userDataForRedisCache);
@@ -55,10 +65,11 @@ export default class AuthServiceImpl implements AuthService {
       // save user to database
       // remove fields not required for user database
       omit(userDataForRedisCache, ['uId', 'username', 'email', 'avatarColor', 'password']);
-      // add job to queue
-      authQueue.addAuthUserJob('addAuthUserToDB', { value: userDataForRedisCache });
+      this.authQueue.addAuthUserJob('addAuthUserToDB', { value: userDataForRedisCache });
+      this.userQueue.addUserJob('addUserToDB', { value: userDataForRedisCache });
 
-      return model as any;
+      // sign JWT token
+      return await JwtHelper.sign(authDocument, userId);
     } catch (error) {
       logger.error(`[UserService: signUp]: Unabled to create user: ${error}`);
       throw error;

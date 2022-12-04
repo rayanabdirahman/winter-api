@@ -1,3 +1,4 @@
+import { injectable } from 'inversify';
 import Queue, { Job } from 'bull';
 import { createBullBoard } from '@bull-board/api';
 import { BullAdapter } from '@bull-board/api/bullAdapter';
@@ -12,6 +13,7 @@ type BaseJobDataType = AuthJob;
 let bullAdapters: BullAdapter[] = [];
 export let serverAdapter: ExpressAdapter;
 
+@injectable()
 export default abstract class BaseQueue {
   queue: Queue.Queue;
   logger: Logger;
@@ -44,10 +46,12 @@ export default abstract class BaseQueue {
   }
 
   protected addJob(name: string, data: BaseJobDataType): void {
+    console.log(' BaseQueue addJob called');
     this.queue.add(name, data, { attempts: 3, backoff: { type: 'fixed', delay: 5000 } });
   }
 
   protected processJob(name: string, concurrency: number, callback: Queue.ProcessCallbackFunction<void>): void {
+    console.log(' BaseQueue processJob called');
     this.queue.process(name, concurrency, callback);
   }
 }

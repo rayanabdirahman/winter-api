@@ -27,10 +27,12 @@ export default class AuthController implements RegistrableController {
   async signUp(req: Request, res: Response): Promise<Response> {
     const model: SignUpModel = { ...req.body, email: textTransformHelper.toLowerCase(req.body.email) };
 
-    await this.authService.signUp(model);
+    const token = await this.authService.signUp(model);
+
+    req.session = { jwt: token };
 
     return res
       .status(HTTP_STATUS.CREATED)
-      .json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User created successfully', data: model });
+      .json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User created successfully', data: { token } });
   }
 }
