@@ -10,6 +10,7 @@ import AuthWorkerImpl, { AuthWorker } from '@auth/workers/auth.worker';
 import UserRepositoryImpl, { UserRepository } from '@user/repositories/user.repository';
 import UserQueueImpl, { UserQueue } from '@user/queues/user.queue';
 import UserWorkerImpl, { UserWorker } from '@user/workers/user.worker';
+import UserCacheImpl, { UserCache } from '@user/redis/user.cache';
 import { CloudinaryService, CloudinaryServiceImpl } from '@services/cloudinary/cloudinary.service';
 
 const container = new Container();
@@ -32,5 +33,8 @@ container.bind<UserQueue>(TYPES.UserQueue).to(UserQueueImpl);
 // workers
 container.bind<AuthWorker>(TYPES.AuthWorker).to(AuthWorkerImpl);
 container.bind<UserWorker>(TYPES.UserWorker).to(UserWorkerImpl);
+
+// redis cache
+container.bind<UserCache>(TYPES.UserCache).to(UserCacheImpl);
 
 export default container;

@@ -7,7 +7,8 @@ const TYPES = {
   AuthWorker: Symbol('AuthWorker'),
   UserRepository: Symbol('UserRepository'),
   UserQueue: Symbol('UserQueue'),
-  UserWorker: Symbol('UserWorker')
+  UserWorker: Symbol('UserWorker'),
+  UserCache: Symbol('UserCache')
 };
 
 export default TYPES;

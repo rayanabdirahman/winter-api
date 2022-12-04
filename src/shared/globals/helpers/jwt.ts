@@ -5,12 +5,12 @@ import config from '@root/config';
 import loggerHelper from './logger';
 const logger = loggerHelper.create('JwtHelper');
 
-interface IJwtHelper {
+interface JwtHelper {
   sign(authObj: AuthDocument, userId: string | ObjectId): Promise<string>;
   // decode(token: string): Promise<AuthPayload>;
 }
 
-const JwtHelper: IJwtHelper = {
+const JwtHelper: JwtHelper = {
   async sign(authObj: AuthDocument, userId: string | ObjectId): Promise<string> {
     const payload: AuthPayload = {
       userId: userId as unknown as string,

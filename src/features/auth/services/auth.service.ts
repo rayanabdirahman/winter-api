@@ -7,7 +7,7 @@ import { AuthRepository } from '@auth/repositories/auth.repository';
 import TYPES from '@root/types';
 import loggerHelper from '@globals/helpers/logger';
 import nanoIdHelper from '@globals/helpers/nanoId';
-import userCache from '@services/redis/user.cache';
+import { UserCache } from '@user/redis/user.cache';
 import { AuthQueue, AuthQueueName } from '@auth/queues/auth.queue';
 import { UserQueue, UserQueueName } from '@user/queues/user.queue';
 import JwtHelper from '@globals/helpers/jwt';
@@ -27,6 +27,7 @@ export default class AuthServiceImpl implements AuthService {
   private userRepository: UserRepository;
   private authQueue: AuthQueue;
   private userQueue: UserQueue;
+  private userCache: UserCache;
   private cloudinaryService: CloudinaryService;
 
   constructor(
@@ -34,12 +35,14 @@ export default class AuthServiceImpl implements AuthService {
     @inject(TYPES.UserRepository) userRepository: UserRepository,
     @inject(TYPES.AuthQueue) authQueue: AuthQueue,
     @inject(TYPES.UserQueue) userQueue: UserQueue,
+    @inject(TYPES.UserCache) userCache: UserCache,
     @inject(TYPES.CloudinaryService) cloudinaryService: CloudinaryService
   ) {
     this.authRepository = authRepository;
     this.userRepository = userRepository;
     this.authQueue = authQueue;
     this.userQueue = userQueue;
+    this.userCache = userCache;
     this.cloudinaryService = cloudinaryService;
   }
 
@@ -119,7 +122,7 @@ export default class AuthServiceImpl implements AuthService {
   private async addUserToRedis(userId: ObjectId, authDocument: AuthDocument, cloudinaryResponse: CloudinaryResponseType) {
     const userDataForRedisCache = this.formateUserDataForRedisCache(userId, authDocument);
     userDataForRedisCache.profilePicture = `https://res.cloudinary.com/daqewh79b/image/upload/v${cloudinaryResponse?.version}/${userId}.png`;
-    await userCache.save(`${userId}`, authDocument.uId, userDataForRedisCache);
+    await this.userCache.save(`${userId}`, authDocument.uId, userDataForRedisCache);
     return userDataForRedisCache;
   }
 
