@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { inject, injectable } from 'inversify';
 import BaseQueue from '@services/queues/base.queue';
 import { UserWorker } from '@user/workers/user.worker';

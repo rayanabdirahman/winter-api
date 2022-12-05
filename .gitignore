@@ -114,7 +114,7 @@ temp/
 .DS_Store
 
 # endpoints test folder
-endpoints/
+# endpoints/
 
 # redis dump file
 dump.rdb
