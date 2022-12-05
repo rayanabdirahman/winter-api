@@ -23,9 +23,9 @@ export abstract class CustomError extends Error {
 
   serializeErrors(): IError {
     return {
-      message: this.message,
+      status: this.status,
       statusCode: this.statusCode,
-      status: this.status
+      message: this.message
     };
   }
 }

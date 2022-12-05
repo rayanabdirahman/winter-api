@@ -3,6 +3,7 @@
     "target": "es2015",
     "module": "commonjs",
     "lib": ["DOM", "ES2015"],
+    "types": ["reflect-metadata"],
     "baseUrl": ".",
     "outDir": "./build",
     "rootDir": "src",
@@ -27,7 +28,10 @@
       { "transform": "typescript-transform-paths", "afterDeclarations": true }
     ],
     "paths": {
+      "@auth/*": ["src/features/auth/*"],
+      "@user/*": ["src/features/user/*"],
       "@globals/*": ["src/shared/globals/*"],
+      "@services/*": ["src/shared/services/*"],
       "@root/*": ["src/*"]
     }
   }

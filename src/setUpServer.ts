@@ -12,10 +12,11 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import 'express-async-errors';
 import config from '@root/config';
 import container from '@root/inversify.config';
-import { RegistrableController } from './api/registrable.controller';
+import { RegistrableController } from './features/registrable.controller';
 import TYPES from '@root/types';
 import { CustomError, IErrorResponse } from '@globals/helpers/errorHandler';
 import loggerHelper from '@globals/helpers/logger';
+import { serverAdapter } from '@services/queues/base.queue';
 const logger = loggerHelper.create('[setUpServer]');
 export interface IAppServer {
   start(): void;
@@ -73,12 +74,17 @@ export default class AppServer implements IAppServer {
     app.get(`/${config.API_URL}`, async (req: express.Request, res: express.Response): Promise<express.Response> => {
       return res.json({ 'Winter API': 'Version 1' });
     });
+
+    // route for bull queues
+    app.use('/queues', serverAdapter.getRouter());
   }
 
   private globalErrorHandler(app: Application): void {
     // catch request to non existing urls
     app.all('*', (req: Request, res: Response) => {
-      res.status(HTTP_STATUS.NOT_FOUND).json({ message: `${req.originalUrl} not found`, status: 'error' });
+      res
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ status: 'error', statusCode: HTTP_STATUS.NOT_FOUND, message: `${req.originalUrl} not found` });
     });
 
     // use global error handler
