@@ -7,7 +7,7 @@ const logger = loggerHelper.create('JwtHelper');
 
 interface JwtHelper {
   sign(authObj: AuthDocument, userId: string | ObjectId): Promise<string>;
-  // decode(token: string): Promise<AuthPayload>;
+  decode(token: string): Promise<AuthPayload>;
 }
 
 const JwtHelper: JwtHelper = {
@@ -21,17 +21,16 @@ const JwtHelper: JwtHelper = {
     };
 
     return await jwt.sign(payload, `${config.JWT_TOKEN}`);
-  }
+  },
 
-  // async decode(token: string): Promise<AuthPayload> {
-  //   try {
-  //     return (await jwt.verify(token, `${config.APP_JWT_SECRET}`)) as AuthPayload;
-  //   } catch (error) {
-  //     const { message } = error;
-  //     logger.error(`[JwtHelper] - Unable to decode user token: ${message}`);
-  //     throw message;
-  //   }
-  // }
+  async decode(token: string): Promise<AuthPayload> {
+    try {
+      return (await jwt.verify(token, `${config.JWT_TOKEN}`)) as AuthPayload;
+    } catch (error) {
+      logger.error(error);
+      throw error;
+    }
+  }
 };
 
 export default JwtHelper;

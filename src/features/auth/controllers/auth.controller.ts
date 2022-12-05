@@ -1,3 +1,4 @@
+import { BadRequestError } from '@globals/helpers/errorHandler';
 import HTTP_STATUS from 'http-status-codes';
 import { Application, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
@@ -10,6 +11,7 @@ import TYPES from '@root/types';
 import { SignInModel, SignUpModel } from '@auth/interfaces/auth.interface';
 import textTransformHelper from '@globals/helpers/textTransform';
 import signInSchema from '@auth/validation/signin.schema';
+import AuthGuard from '@root/shared/middlewares/authguard.middleware';
 
 @injectable()
 export default class AuthController implements RegistrableController {
@@ -20,12 +22,14 @@ export default class AuthController implements RegistrableController {
     this.signUp = this.signUp.bind(this);
     this.signIn = this.signIn.bind(this);
     this.signOut = this.signOut.bind(this);
+    this.currenteUser = this.currenteUser.bind(this);
   }
 
   registerRoutes(app: Application): void {
     app.post(`/${config.API_URL}/auth/signup`, this.signUp);
     app.post(`/${config.API_URL}/auth/signin`, this.signIn);
     app.get(`/${config.API_URL}/auth/signout`, this.signOut);
+    app.get(`/${config.API_URL}/auth/currentuser`, AuthGuard.authenticate, this.currenteUser);
   }
 
   @joiValidate(signUpSchema)
@@ -60,5 +64,23 @@ export default class AuthController implements RegistrableController {
     return res
       .status(HTTP_STATUS.OK)
       .json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User signed out successfully', data: {} });
+  }
+
+  async currenteUser(req: Request, res: Response): Promise<Response> {
+    const { currentUser, session } = req;
+    if (!currentUser) {
+      throw new BadRequestError('User not authenticated');
+    }
+
+    const { isUser, user } = await this.authService.currentUser(currentUser);
+
+    const token = session?.jwt;
+
+    return res.status(HTTP_STATUS.OK).json({
+      status: 'success',
+      statusCode: HTTP_STATUS.CREATED,
+      message: 'Current user returned successfully',
+      data: { isUser, token, user }
+    });
   }
 }

@@ -1,9 +1,9 @@
 interface JSONHelper {
-  parse(prop: string): unknown;
+  parse(prop: string): any;
 }
 
 const JSONHelper: JSONHelper = {
-  parse(prop: string): unknown {
+  parse(prop: string): any {
     try {
       return JSON.parse(prop);
     } catch (error) {

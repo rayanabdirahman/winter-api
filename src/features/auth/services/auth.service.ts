@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 import { inject, injectable } from 'inversify';
 import { UserDocument } from '@user/interfaces/user.interface';
 import { BadRequestError } from '@globals/helpers/errorHandler';
-import { AuthDocument, SignInModel, SignUpModel } from '@auth/interfaces/auth.interface';
+import { AuthDocument, SignInModel, SignUpModel, AuthPayload } from '@auth/interfaces/auth.interface';
 import { AuthRepository } from '@auth/repositories/auth.repository';
 import TYPES from '@root/types';
 import loggerHelper from '@globals/helpers/logger';
@@ -19,6 +19,7 @@ const logger = loggerHelper.create('[AuthService]');
 export interface AuthService {
   signUp(model: SignUpModel): Promise<{ token: string; user: UserDocument }>;
   signIn(model: SignInModel): Promise<{ token: string; user: UserDocument }>;
+  currentUser(user: AuthPayload): Promise<{ isUser: boolean; user: UserDocument }>;
 }
 
 @injectable()
@@ -114,7 +115,27 @@ export default class AuthServiceImpl implements AuthService {
 
       return { token, user: mergedUserObj };
     } catch (error) {
-      logger.error(`[UserService: signUp]: Unabled to sign in user: ${error}`);
+      logger.error(`[UserService: signIn]: Unabled to sign in user: ${error}`);
+      throw error;
+    }
+  }
+
+  async currentUser(user: AuthPayload): Promise<{ isUser: boolean; user: UserDocument }> {
+    try {
+      // check redis cache for user first
+      const cachedUser = await this.userCache.getOne(user.userId);
+      const existingUser = cachedUser ? cachedUser : await this.userRepository.findOneById(user.userId);
+      if (!existingUser) {
+        throw new BadRequestError('User not found');
+      }
+
+      if (!Object.keys(existingUser).length) {
+        throw new BadRequestError('User not found');
+      }
+
+      return { isUser: true, user: existingUser };
+    } catch (error) {
+      logger.error(`[UserService: currentUser]: Unabled to return current user: ${error}`);
       throw error;
     }
   }
