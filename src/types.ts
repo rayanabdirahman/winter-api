@@ -1,6 +1,7 @@
 const TYPES = {
   Controller: Symbol('Controller'),
   CloudinaryService: Symbol('CloudinaryService'),
+  MailTransport: Symbol('MailTransport'),
   AuthService: Symbol('AuthService'),
   AuthRepository: Symbol('AuthRepository'),
   AuthQueue: Symbol('AuthQueue'),

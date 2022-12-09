@@ -12,6 +12,7 @@ import UserQueueImpl, { UserQueue } from '@user/queues/user.queue';
 import UserWorkerImpl, { UserWorker } from '@user/workers/user.worker';
 import UserCacheImpl, { UserCache } from '@user/redis/user.cache';
 import { CloudinaryService, CloudinaryServiceImpl } from '@services/cloudinary/cloudinary.service';
+import MailTransportImpl, { MailTransport } from '@services/emails/mail.transport';
 
 const container = new Container();
 
@@ -36,5 +37,8 @@ container.bind<UserWorker>(TYPES.UserWorker).to(UserWorkerImpl);
 
 // redis cache
 container.bind<UserCache>(TYPES.UserCache).to(UserCacheImpl);
+
+// email transport
+container.bind<MailTransport>(TYPES.MailTransport).to(MailTransportImpl);
 
 export default container;
