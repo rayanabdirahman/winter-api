@@ -12,16 +12,13 @@ import { SignInModel, SignUpModel } from '@auth/interfaces/auth.interface';
 import textTransformHelper from '@globals/helpers/textTransform';
 import signInSchema from '@auth/validation/signin.schema';
 import AuthGuard from '@root/shared/middlewares/authguard.middleware';
-import { MailTransport } from '@services/emails/mail.transport';
 
 @injectable()
 export default class AuthController implements RegistrableController {
   private authService: AuthService;
-  private mailTransport: MailTransport;
 
-  constructor(@inject(TYPES.AuthService) authService: AuthService, @inject(TYPES.MailTransport) mailTransport: MailTransport) {
+  constructor(@inject(TYPES.AuthService) authService: AuthService) {
     this.authService = authService;
-    this.mailTransport = mailTransport;
     this.signUp = this.signUp.bind(this);
     this.signIn = this.signIn.bind(this);
     this.signOut = this.signOut.bind(this);
@@ -54,12 +51,6 @@ export default class AuthController implements RegistrableController {
 
     const { token, user } = await this.authService.signIn(model);
     req.session = { jwt: token };
-
-    this.mailTransport.sendEmail(
-      'hanna.renner@ethereal.email',
-      'Confirm your email address for Winter',
-      'This is a test email from development email server'
-    );
 
     return res
       .status(HTTP_STATUS.OK)

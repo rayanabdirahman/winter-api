@@ -13,6 +13,8 @@ import UserWorkerImpl, { UserWorker } from '@user/workers/user.worker';
 import UserCacheImpl, { UserCache } from '@user/redis/user.cache';
 import { CloudinaryService, CloudinaryServiceImpl } from '@services/cloudinary/cloudinary.service';
 import MailTransportImpl, { MailTransport } from '@services/emails/mail.transport';
+import EmailQueueImpl, { EmailQueue } from '@services/queues/email.queue';
+import EmailWorkerImpl, { EmailWorker } from '@workers/email.worker';
 
 const container = new Container();
 
@@ -30,10 +32,12 @@ container.bind<UserRepository>(TYPES.UserRepository).to(UserRepositoryImpl);
 // Queues
 container.bind<AuthQueue>(TYPES.AuthQueue).to(AuthQueueImpl);
 container.bind<UserQueue>(TYPES.UserQueue).to(UserQueueImpl);
+container.bind<EmailQueue>(TYPES.EmailQueue).to(EmailQueueImpl);
 
 // workers
 container.bind<AuthWorker>(TYPES.AuthWorker).to(AuthWorkerImpl);
 container.bind<UserWorker>(TYPES.UserWorker).to(UserWorkerImpl);
+container.bind<EmailWorker>(TYPES.EmailWorker).to(EmailWorkerImpl);
 
 // redis cache
 container.bind<UserCache>(TYPES.UserCache).to(UserCacheImpl);

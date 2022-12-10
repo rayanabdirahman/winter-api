@@ -32,6 +32,7 @@
       "@user/*": ["src/features/user/*"],
       "@globals/*": ["src/shared/globals/*"],
       "@services/*": ["src/shared/services/*"],
+      "@workers/*": ["src/shared/workers/*"],
       "@root/*": ["src/*"]
     }
   }

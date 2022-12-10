@@ -17,20 +17,20 @@ interface MailOptions {
 }
 
 export interface MailTransport {
-  sendEmail(recieverEmail: string, subject: string, body: string): Promise<void>;
+  sendEmail(receiverEmail: string, subject: string, body: string): Promise<void>;
 }
 
 @injectable()
 export default class MailTransportImpl implements MailTransport {
-  async sendEmail(recieverEmail: string, subject: string, body: string): Promise<void> {
+  async sendEmail(receiverEmail: string, subject: string, body: string): Promise<void> {
     if (config.NODE_ENV === 'test' || config.NODE_ENV === 'development') {
-      this.developmentEmailServer(recieverEmail, subject, body);
+      this.developmentEmailServer(receiverEmail, subject, body);
     } else {
-      this.productionEmailServer(recieverEmail, subject, body);
+      this.productionEmailServer(receiverEmail, subject, body);
     }
   }
 
-  private async developmentEmailServer(recieverEmail: string, subject: string, body: string): Promise<void> {
+  private async developmentEmailServer(receiverEmail: string, subject: string, body: string): Promise<void> {
     try {
       // create reusable transporter object using the default SMTP transport
       const transporter: Mail = nodemailer.createTransport({
@@ -46,7 +46,7 @@ export default class MailTransportImpl implements MailTransport {
       // defined transport object
       const options: MailOptions = {
         from: `Winter <${config.SENDER_EMAIL}>`,
-        to: recieverEmail,
+        to: receiverEmail,
         subject,
         html: body
       };
@@ -59,12 +59,12 @@ export default class MailTransportImpl implements MailTransport {
     }
   }
 
-  private async productionEmailServer(recieverEmail: string, subject: string, body: string): Promise<void> {
+  private async productionEmailServer(receiverEmail: string, subject: string, body: string): Promise<void> {
     try {
       // defined transport object
       const options: MailOptions = {
         from: `Winter <${config.SENDER_EMAIL}>`,
-        to: recieverEmail,
+        to: receiverEmail,
         subject,
         html: body
       };
