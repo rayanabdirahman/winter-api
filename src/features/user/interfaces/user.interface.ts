@@ -90,7 +90,7 @@ export interface UserJob {
 }
 
 export interface EmailJob {
-  recievedEmail: string;
+  receiverEmail: string;
   template: string;
   subject: string;
 }

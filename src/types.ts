@@ -1,7 +1,6 @@
 const TYPES = {
   Controller: Symbol('Controller'),
   CloudinaryService: Symbol('CloudinaryService'),
-  MailTransport: Symbol('MailTransport'),
   AuthService: Symbol('AuthService'),
   AuthRepository: Symbol('AuthRepository'),
   AuthQueue: Symbol('AuthQueue'),
@@ -11,7 +10,9 @@ const TYPES = {
   UserWorker: Symbol('UserWorker'),
   UserCache: Symbol('UserCache'),
   EmailQueue: Symbol('EmailQueue'),
-  EmailWorker: Symbol('EmailWorker')
+  EmailWorker: Symbol('EmailWorker'),
+  EmailService: Symbol('EmailService'),
+  EmailTemplateService: Symbol('EmailTemplateService')
 };
 
 export default TYPES;

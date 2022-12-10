@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify';
 import { DoneCallback, Job } from 'bull';
 import loggerHelper from '@globals/helpers/logger';
 import TYPES from '@root/types';
-import { MailTransport } from '@services/emails/mail.transport';
+import { EmailService } from '@services/emails/email.service';
 const logger = loggerHelper.create('EmailWorker');
 
 export interface EmailWorker {
@@ -11,10 +11,10 @@ export interface EmailWorker {
 
 @injectable()
 export default class EmailWorkerImpl implements EmailWorker {
-  private mailTransport: MailTransport;
+  private emailService: EmailService;
 
-  constructor(@inject(TYPES.MailTransport) mailTransport: MailTransport) {
-    this.mailTransport = mailTransport;
+  constructor(@inject(TYPES.EmailService) emailService: EmailService) {
+    this.emailService = emailService;
     this.addNotificationEmail = this.addNotificationEmail.bind(this);
   }
 
@@ -22,7 +22,7 @@ export default class EmailWorkerImpl implements EmailWorker {
     try {
       const { receiverEmail, subject, template } = job.data;
 
-      await this.mailTransport.sendEmail(receiverEmail, subject, template);
+      await this.emailService.sendEmail(receiverEmail, subject, template);
 
       job.progress(100);
       done(null, job.data);

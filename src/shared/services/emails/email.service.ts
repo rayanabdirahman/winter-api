@@ -1,11 +1,11 @@
 import { injectable } from 'inversify';
-import { BadRequestError } from './../../globals/helpers/errorHandler';
+import { BadRequestError } from '../../globals/helpers/errorHandler';
 import nodemailer from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
 import sendGridMail from '@sendgrid/mail';
 import config from '@root/config';
 import loggerHelper from '@globals/helpers/logger';
-const logger = loggerHelper.create('MailTransportService');
+const logger = loggerHelper.create('EmailService');
 
 sendGridMail.setApiKey(config.SENDGRID_API_KEY as string);
 
@@ -16,12 +16,12 @@ interface MailOptions {
   html: string;
 }
 
-export interface MailTransport {
+export interface EmailService {
   sendEmail(receiverEmail: string, subject: string, body: string): Promise<void>;
 }
 
 @injectable()
-export default class MailTransportImpl implements MailTransport {
+export default class EmailServiceImpl implements EmailService {
   async sendEmail(receiverEmail: string, subject: string, body: string): Promise<void> {
     if (config.NODE_ENV === 'test' || config.NODE_ENV === 'development') {
       this.developmentEmailServer(receiverEmail, subject, body);
@@ -42,6 +42,8 @@ export default class MailTransportImpl implements MailTransport {
           pass: config.SENDER_EMAIL_PASSWORD
         }
       });
+
+      console.log('receiverEmail :', receiverEmail);
 
       // defined transport object
       const options: MailOptions = {

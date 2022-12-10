@@ -12,9 +12,10 @@ import UserQueueImpl, { UserQueue } from '@user/queues/user.queue';
 import UserWorkerImpl, { UserWorker } from '@user/workers/user.worker';
 import UserCacheImpl, { UserCache } from '@user/redis/user.cache';
 import { CloudinaryService, CloudinaryServiceImpl } from '@services/cloudinary/cloudinary.service';
-import MailTransportImpl, { MailTransport } from '@services/emails/mail.transport';
+import EmailServiceImpl, { EmailService } from '@services/emails/email.service';
 import EmailQueueImpl, { EmailQueue } from '@services/queues/email.queue';
 import EmailWorkerImpl, { EmailWorker } from '@workers/email.worker';
+import EmailTemplateServiceImpl, { EmailTemplateService } from '@services/emails/emailTemplate.service';
 
 const container = new Container();
 
@@ -24,6 +25,8 @@ container.bind<RegistrableController>(TYPES.Controller).to(AuthController);
 // services
 container.bind<AuthService>(TYPES.AuthService).to(AuthServiceImpl);
 container.bind<CloudinaryService>(TYPES.CloudinaryService).to(CloudinaryServiceImpl);
+container.bind<EmailService>(TYPES.EmailService).to(EmailServiceImpl);
+container.bind<EmailTemplateService>(TYPES.EmailTemplateService).to(EmailTemplateServiceImpl);
 
 // repositories
 container.bind<AuthRepository>(TYPES.AuthRepository).to(AuthRepositoryImpl);
@@ -41,8 +44,5 @@ container.bind<EmailWorker>(TYPES.EmailWorker).to(EmailWorkerImpl);
 
 // redis cache
 container.bind<UserCache>(TYPES.UserCache).to(UserCacheImpl);
-
-// email transport
-container.bind<MailTransport>(TYPES.MailTransport).to(MailTransportImpl);
 
 export default container;
