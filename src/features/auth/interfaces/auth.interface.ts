@@ -55,6 +55,15 @@ export interface SignInModel {
   password: string;
 }
 
+export interface ForgotPasswordModel {
+  email: string;
+}
+
+export interface ResetPasswordModel {
+  password: string;
+  confirmPassword: string;
+}
+
 export interface AuthJob {
   value: string | AuthDocument | UserDocument;
 }

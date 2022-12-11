@@ -1,7 +1,13 @@
 import Joi from 'joi';
 
-const emailSchema: Joi.ObjectSchema = Joi.object({
+export const emailSchema: Joi.ObjectSchema = Joi.object({
   email: Joi.string().email().required()
 });
 
-export default emailSchema;
+export const resetPasswordSchema: Joi.ObjectSchema = Joi.object({
+  password: Joi.string().min(8).max(15).required(),
+  confirmPassword: Joi.string().required().valid(Joi.ref('password')).messages({
+    'any.only': 'Password must match',
+    'any.required': '"confirmPassword" is required'
+  })
+});

@@ -11,14 +11,14 @@ import joiValidate from '@globals/decorators/joi.decorator';
 import signUpSchema from '@auth/validation/signup.schema';
 import { AuthService } from '@auth/services/auth.service';
 import TYPES from '@root/types';
-import { SignInModel, SignUpModel } from '@auth/interfaces/auth.interface';
+import { ForgotPasswordModel, ResetPasswordModel, SignInModel, SignUpModel } from '@auth/interfaces/auth.interface';
 import textTransformHelper from '@globals/helpers/textTransform';
 import signInSchema from '@auth/validation/signin.schema';
 import AuthGuard from '@root/shared/middlewares/authguard.middleware';
 import { EmailService } from '@services/emails/email.service';
 import { EmailQueue, EmailQueueName } from '@services/queues/email.queue';
 import { EmailTemplateService } from '@services/emails/emailTemplate.service';
-import emailSchema from '@auth/validation/password.schema';
+import { emailSchema, resetPasswordSchema } from '@auth/validation/password.schema';
 
 @injectable()
 export default class AuthController implements RegistrableController {
@@ -41,6 +41,7 @@ export default class AuthController implements RegistrableController {
     this.signIn = this.signIn.bind(this);
     this.signOut = this.signOut.bind(this);
     this.forgotPassword = this.forgotPassword.bind(this);
+    this.resetPassword = this.resetPassword.bind(this);
     this.currenteUser = this.currenteUser.bind(this);
   }
 
@@ -48,7 +49,8 @@ export default class AuthController implements RegistrableController {
     app.post(`/${config.API_URL}/auth/signup`, this.signUp);
     app.post(`/${config.API_URL}/auth/signin`, this.signIn);
     app.get(`/${config.API_URL}/auth/signout`, this.signOut);
-    app.get(`/${config.API_URL}/auth/forgot-password`, this.forgotPassword);
+    app.post(`/${config.API_URL}/auth/forgot-password`, this.forgotPassword);
+    app.post(`/${config.API_URL}/auth/reset-password/:token`, this.resetPassword);
     app.get(`/${config.API_URL}/auth/currentuser`, AuthGuard.authenticate, this.currenteUser);
   }
 
@@ -72,15 +74,47 @@ export default class AuthController implements RegistrableController {
     const { token, user } = await this.authService.signIn(model);
     req.session = { jwt: token };
 
-    // testing forgot password
-    // const resetLink = `${config.CLIENT_URL}/reset-password?token=123456789`;
-    // const template = this.emailTemplateService.getForgotPassword(user.username as string, resetLink);
+    return res
+      .status(HTTP_STATUS.OK)
+      .json({ status: 'success', statusCode: HTTP_STATUS.OK, message: 'User signed in successfully', data: { token, user } });
+  }
 
-    // this.emailQueue.addEmailJob(EmailQueueName.FORGOT_PASSWORD, {
-    //   template,
-    //   receiverEmail: 'geovanni.roberts47@ethereal.email',
-    //   subject: 'Reset your password fot Winter'
-    // });
+  async signOut(req: Request, res: Response): Promise<Response> {
+    req.session = null;
+
+    return res.status(HTTP_STATUS.OK).json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User signed out successfully' });
+  }
+
+  @joiValidate(emailSchema)
+  async forgotPassword(req: Request, res: Response): Promise<Response> {
+    const model: ForgotPasswordModel = { ...req.body, email: textTransformHelper.toLowerCase(req.body.email) };
+
+    const { token, user } = await this.authService.forgotPassword(model);
+
+    // send forgot password email
+    const resetLink = `${config.CLIENT_URL}/reset-password?token=${token}`;
+    const template = this.emailTemplateService.getForgotPassword(user.username as string, resetLink);
+
+    this.emailQueue.addEmailJob(EmailQueueName.FORGOT_PASSWORD, {
+      receiverEmail: model.email,
+      subject: 'Reset your password for Winter',
+      template
+    });
+
+    return res
+      .status(HTTP_STATUS.OK)
+      .json({ status: 'success', statusCode: HTTP_STATUS.OK, message: 'Reset password email sent successfully' });
+  }
+
+  @joiValidate(resetPasswordSchema)
+  async resetPassword(req: Request, res: Response): Promise<Response> {
+    const model: ResetPasswordModel = { ...req.body };
+    const { token } = req.params;
+    if (!token) {
+      throw new BadRequestError('Reset password token not valid');
+    }
+
+    const { user } = await this.authService.resetPassword(token, model);
 
     // testing reset password
     const templateParams: ResetPassword = {
@@ -92,41 +126,12 @@ export default class AuthController implements RegistrableController {
     const template = this.emailTemplateService.getResetPasswordConfirmation(templateParams);
 
     this.emailQueue.addEmailJob(EmailQueueName.RESET_PASSWORD, {
-      template,
-      receiverEmail: 'geovanni.roberts47@ethereal.email',
-      subject: 'Password reset conformation for Winter'
-    });
-
-    return res
-      .status(HTTP_STATUS.OK)
-      .json({ status: 'success', statusCode: HTTP_STATUS.OK, message: 'User signed in successfully', data: { token, user } });
-  }
-
-  async signOut(req: Request, res: Response): Promise<Response> {
-    req.session = null;
-
-    return res
-      .status(HTTP_STATUS.OK)
-      .json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User signed out successfully', data: {} });
-  }
-
-  @joiValidate(emailSchema)
-  async forgotPassword(req: Request, res: Response): Promise<Response> {
-    const model = { ...req.body, email: textTransformHelper.toLowerCase(req.body.email) };
-
-    const { token, user } = await this.authService.forgotPassword(model);
-
-    // send forgot password email
-    const resetLink = `${config.CLIENT_URL}/reset-password?token=${token}`;
-    const template = this.emailTemplateService.getForgotPassword(user.username as string, resetLink);
-
-    this.emailQueue.addEmailJob(EmailQueueName.FORGOT_PASSWORD, {
-      receiverEmail: model.email,
-      subject: 'Reset your password fot Winter',
+      receiverEmail: user.email,
+      subject: 'Password reset conformation for Winter',
       template
     });
 
-    return res.status(HTTP_STATUS.OK).json({ status: 'success', statusCode: HTTP_STATUS.OK, message: 'Reset password email successfully' });
+    return res.status(HTTP_STATUS.OK).json({ status: 'success', statusCode: HTTP_STATUS.OK, message: 'Password updated successfully' });
   }
 
   async currenteUser(req: Request, res: Response): Promise<Response> {
