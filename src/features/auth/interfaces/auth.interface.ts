@@ -27,6 +27,8 @@ export interface AuthDocument extends Document {
   password: string;
   avatarColor: string;
   createdAt: Date;
+  passwordResetToken?: string;
+  passwordResetExpires?: number | string;
   comparePassword: (password: string) => Promise<boolean>;
   hashPassword: (password: string) => Promise<string>;
 }
@@ -51,6 +53,15 @@ export interface SignUpModel {
 export interface SignInModel {
   email: string;
   password: string;
+}
+
+export interface ForgotPasswordModel {
+  email: string;
+}
+
+export interface ResetPasswordModel {
+  password: string;
+  confirmPassword: string;
 }
 
 export interface AuthJob {

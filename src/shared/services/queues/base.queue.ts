@@ -1,4 +1,4 @@
-import { injectable } from 'inversify';
+import { injectable, unmanaged } from 'inversify';
 import Queue, { Job } from 'bull';
 import { createBullBoard } from '@bull-board/api';
 import { BullAdapter } from '@bull-board/api/bullAdapter';
@@ -7,8 +7,9 @@ import Logger from 'bunyan';
 import config from '@root/config';
 import loggerHelper from '@globals/helpers/logger';
 import { AuthJob } from '@auth/interfaces/auth.interface';
+import { EmailJob } from '@user/interfaces/user.interface';
 
-type BaseJobDataType = AuthJob;
+type BaseJobDataType = AuthJob | EmailJob;
 
 let bullAdapters: BullAdapter[] = [];
 export let serverAdapter: ExpressAdapter;
@@ -18,7 +19,7 @@ export default abstract class BaseQueue {
   queue: Queue.Queue;
   logger: Logger;
 
-  constructor(queueName: string) {
+  constructor(@unmanaged() queueName: string) {
     this.queue = new Queue(queueName, `${config.REDIS_HOST}`);
     this.logger = loggerHelper.create(`${queueName}Queue`);
     bullAdapters.push(new BullAdapter(this.queue));

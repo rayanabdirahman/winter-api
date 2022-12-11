@@ -1,8 +1,16 @@
 import { ObjectId } from 'mongodb';
 import { inject, injectable } from 'inversify';
+import crypto from 'crypto';
 import { UserDocument } from '@user/interfaces/user.interface';
 import { BadRequestError } from '@globals/helpers/errorHandler';
-import { AuthDocument, SignInModel, SignUpModel, AuthPayload } from '@auth/interfaces/auth.interface';
+import {
+  AuthDocument,
+  SignInModel,
+  SignUpModel,
+  AuthPayload,
+  ResetPasswordModel,
+  ForgotPasswordModel
+} from '@auth/interfaces/auth.interface';
 import { AuthRepository } from '@auth/repositories/auth.repository';
 import TYPES from '@root/types';
 import loggerHelper from '@globals/helpers/logger';
@@ -19,6 +27,8 @@ const logger = loggerHelper.create('[AuthService]');
 export interface AuthService {
   signUp(model: SignUpModel): Promise<{ token: string; user: UserDocument }>;
   signIn(model: SignInModel): Promise<{ token: string; user: UserDocument }>;
+  forgotPassword(model: ForgotPasswordModel): Promise<{ token: string; user: AuthDocument }>;
+  resetPassword(token: string, model: ResetPasswordModel): Promise<{ token: string; user: AuthDocument }>;
   currentUser(user: AuthPayload): Promise<{ isUser: boolean; user: UserDocument }>;
 }
 
@@ -114,6 +124,48 @@ export default class AuthServiceImpl implements AuthService {
       } as UserDocument;
 
       return { token, user: mergedUserObj };
+    } catch (error) {
+      logger.error(`[UserService: signIn]: Unabled to sign in user: ${error}`);
+      throw error;
+    }
+  }
+
+  async forgotPassword(model: ForgotPasswordModel): Promise<{ token: string; user: AuthDocument }> {
+    try {
+      // check if auth user with email exists
+      const existingAuthUser = await this.authRepository.findOneByEmail(model.email);
+      if (!existingAuthUser) {
+        throw new BadRequestError('Invalid credentials');
+      }
+
+      const buffer = await Promise.resolve(crypto.randomBytes(20));
+      const token = buffer.toString('hex');
+      const expiresIn = Date.now() * 60 * 60 * 1000; // token to expire in an hour
+
+      // update auth user document to include password reset details
+      await this.authRepository.updateOneById(existingAuthUser._id as string, {
+        passwordResetToken: token,
+        passwordResetExpires: expiresIn
+      });
+
+      return { token, user: existingAuthUser };
+    } catch (error) {
+      logger.error(`[UserService: signIn]: Unabled to sign in user: ${error}`);
+      throw error;
+    }
+  }
+
+  async resetPassword(token: string, model: ResetPasswordModel): Promise<{ token: string; user: AuthDocument }> {
+    try {
+      // check if auth user with valid password token exists
+      const existingAuthUser = await this.authRepository.findOne({ passwordResetToken: token, passwordResetExpires: { $gt: Date.now() } });
+      if (!existingAuthUser) {
+        throw new BadRequestError('Reset password token has expired');
+      }
+
+      await this.authRepository.updateOnePasswordById(existingAuthUser._id as string, model.password);
+
+      return { token, user: existingAuthUser };
     } catch (error) {
       logger.error(`[UserService: signIn]: Unabled to sign in user: ${error}`);
       throw error;

@@ -8,7 +8,11 @@ const TYPES = {
   UserRepository: Symbol('UserRepository'),
   UserQueue: Symbol('UserQueue'),
   UserWorker: Symbol('UserWorker'),
-  UserCache: Symbol('UserCache')
+  UserCache: Symbol('UserCache'),
+  EmailQueue: Symbol('EmailQueue'),
+  EmailWorker: Symbol('EmailWorker'),
+  EmailService: Symbol('EmailService'),
+  EmailTemplateService: Symbol('EmailTemplateService')
 };
 
 export default TYPES;
