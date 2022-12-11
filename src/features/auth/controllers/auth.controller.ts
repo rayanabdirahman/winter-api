@@ -2,39 +2,33 @@ import moment from 'moment';
 import publicIP from 'ip';
 import { ResetPassword } from './../../user/interfaces/user.interface';
 import { BadRequestError } from '@globals/helpers/errorHandler';
-import HTTP_STATUS from 'http-status-codes';
 import { Application, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import config from '@root/config';
 import { RegistrableController } from '../../registrable.controller';
 import joiValidate from '@globals/decorators/joi.decorator';
-import signUpSchema from '@auth/validation/signup.schema';
 import { AuthService } from '@auth/services/auth.service';
 import TYPES from '@root/types';
 import { ForgotPasswordModel, ResetPasswordModel, SignInModel, SignUpModel } from '@auth/interfaces/auth.interface';
 import textTransformHelper from '@globals/helpers/textTransform';
-import signInSchema from '@auth/validation/signin.schema';
 import AuthGuard from '@root/shared/middlewares/authguard.middleware';
-import { EmailService } from '@services/emails/email.service';
 import { EmailQueue, EmailQueueName } from '@services/queues/email.queue';
 import { EmailTemplateService } from '@services/emails/emailTemplate.service';
-import { emailSchema, resetPasswordSchema } from '@auth/validation/password.schema';
+import { CreatedResponse, OKResponse } from '@globals/helpers/apiResponse';
+import { forgotPasswordEmailSchema, resetPasswordSchema, signInSchema, signUpSchema } from '@auth/validation';
 
 @injectable()
 export default class AuthController implements RegistrableController {
   private authService: AuthService;
-  private emailService: EmailService;
   private emailTemplateService: EmailTemplateService;
   private emailQueue: EmailQueue;
 
   constructor(
     @inject(TYPES.AuthService) authService: AuthService,
-    @inject(TYPES.EmailService) emailService: EmailService,
     @inject(TYPES.EmailTemplateService) emailTemplateService: EmailTemplateService,
     @inject(TYPES.EmailQueue) emailQueue: EmailQueue
   ) {
     this.authService = authService;
-    this.emailService = emailService;
     this.emailTemplateService = emailTemplateService;
     this.emailQueue = emailQueue;
     this.signUp = this.signUp.bind(this);
@@ -62,9 +56,7 @@ export default class AuthController implements RegistrableController {
 
     req.session = { jwt: token };
 
-    return res
-      .status(HTTP_STATUS.CREATED)
-      .json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User created successfully', data: { token, user } });
+    return CreatedResponse(res, 'User created successfully', { token, user });
   }
 
   @joiValidate(signInSchema)
@@ -74,18 +66,16 @@ export default class AuthController implements RegistrableController {
     const { token, user } = await this.authService.signIn(model);
     req.session = { jwt: token };
 
-    return res
-      .status(HTTP_STATUS.OK)
-      .json({ status: 'success', statusCode: HTTP_STATUS.OK, message: 'User signed in successfully', data: { token, user } });
+    return OKResponse(res, 'User signed in successfully', { token, user });
   }
 
   async signOut(req: Request, res: Response): Promise<Response> {
     req.session = null;
 
-    return res.status(HTTP_STATUS.OK).json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User signed out successfully' });
+    return OKResponse(res, 'User signed out successfully');
   }
 
-  @joiValidate(emailSchema)
+  @joiValidate(forgotPasswordEmailSchema)
   async forgotPassword(req: Request, res: Response): Promise<Response> {
     const model: ForgotPasswordModel = { ...req.body, email: textTransformHelper.toLowerCase(req.body.email) };
 
@@ -101,9 +91,7 @@ export default class AuthController implements RegistrableController {
       template
     });
 
-    return res
-      .status(HTTP_STATUS.OK)
-      .json({ status: 'success', statusCode: HTTP_STATUS.OK, message: 'Reset password email sent successfully' });
+    return OKResponse(res, 'Reset password email sent successfully');
   }
 
   @joiValidate(resetPasswordSchema)
@@ -131,7 +119,7 @@ export default class AuthController implements RegistrableController {
       template
     });
 
-    return res.status(HTTP_STATUS.OK).json({ status: 'success', statusCode: HTTP_STATUS.OK, message: 'Password updated successfully' });
+    return OKResponse(res, 'Password updated successfully');
   }
 
   async currenteUser(req: Request, res: Response): Promise<Response> {
@@ -144,11 +132,6 @@ export default class AuthController implements RegistrableController {
 
     const token = session?.jwt;
 
-    return res.status(HTTP_STATUS.OK).json({
-      status: 'success',
-      statusCode: HTTP_STATUS.CREATED,
-      message: 'Current user returned successfully',
-      data: { isUser, token, user }
-    });
+    return OKResponse(res, 'Current user returned successfully', { isUser, token, user });
   }
 }

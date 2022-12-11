@@ -43,8 +43,6 @@ export default class EmailServiceImpl implements EmailService {
         }
       });
 
-      console.log('receiverEmail :', receiverEmail);
-
       // defined transport object
       const options: MailOptions = {
         from: `Winter <${config.SENDER_EMAIL}>`,
