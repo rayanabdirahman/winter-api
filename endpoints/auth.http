@@ -48,7 +48,7 @@ withCredentials: true
 }
 
 ###
-POST {{baseUrl}}/{{apiUrl}}/auth/reset-password/41157a36344fe0aabc09874c2ee3fb513b821629
+POST {{baseUrl}}/{{apiUrl}}/auth/reset-password/d2a3eb957da4616df07a68910dadfb9346cbb28c
 Content-Type: application/json
 Accept: application/json
 withCredentials: true
