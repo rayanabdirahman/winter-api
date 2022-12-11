@@ -1,3 +1,5 @@
+import moment from 'moment';
+import publicIP from 'ip';
 import { ResetPassword } from './../../user/interfaces/user.interface';
 import { BadRequestError } from '@globals/helpers/errorHandler';
 import HTTP_STATUS from 'http-status-codes';
@@ -16,9 +18,7 @@ import AuthGuard from '@root/shared/middlewares/authguard.middleware';
 import { EmailService } from '@services/emails/email.service';
 import { EmailQueue, EmailQueueName } from '@services/queues/email.queue';
 import { EmailTemplateService } from '@services/emails/emailTemplate.service';
-
-import moment from 'moment';
-import publicIP from 'ip';
+import emailSchema from '@auth/validation/password.schema';
 
 @injectable()
 export default class AuthController implements RegistrableController {
@@ -40,6 +40,7 @@ export default class AuthController implements RegistrableController {
     this.signUp = this.signUp.bind(this);
     this.signIn = this.signIn.bind(this);
     this.signOut = this.signOut.bind(this);
+    this.forgotPassword = this.forgotPassword.bind(this);
     this.currenteUser = this.currenteUser.bind(this);
   }
 
@@ -47,6 +48,7 @@ export default class AuthController implements RegistrableController {
     app.post(`/${config.API_URL}/auth/signup`, this.signUp);
     app.post(`/${config.API_URL}/auth/signin`, this.signIn);
     app.get(`/${config.API_URL}/auth/signout`, this.signOut);
+    app.get(`/${config.API_URL}/auth/forgot-password`, this.forgotPassword);
     app.get(`/${config.API_URL}/auth/currentuser`, AuthGuard.authenticate, this.currenteUser);
   }
 
@@ -97,7 +99,7 @@ export default class AuthController implements RegistrableController {
 
     return res
       .status(HTTP_STATUS.OK)
-      .json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User signed in successfully', data: { token, user } });
+      .json({ status: 'success', statusCode: HTTP_STATUS.OK, message: 'User signed in successfully', data: { token, user } });
   }
 
   async signOut(req: Request, res: Response): Promise<Response> {
@@ -106,6 +108,25 @@ export default class AuthController implements RegistrableController {
     return res
       .status(HTTP_STATUS.OK)
       .json({ status: 'success', statusCode: HTTP_STATUS.CREATED, message: 'User signed out successfully', data: {} });
+  }
+
+  @joiValidate(emailSchema)
+  async forgotPassword(req: Request, res: Response): Promise<Response> {
+    const model = { ...req.body, email: textTransformHelper.toLowerCase(req.body.email) };
+
+    const { token, user } = await this.authService.forgotPassword(model);
+
+    // send forgot password email
+    const resetLink = `${config.CLIENT_URL}/reset-password?token=${token}`;
+    const template = this.emailTemplateService.getForgotPassword(user.username as string, resetLink);
+
+    this.emailQueue.addEmailJob(EmailQueueName.FORGOT_PASSWORD, {
+      receiverEmail: model.email,
+      subject: 'Reset your password fot Winter',
+      template
+    });
+
+    return res.status(HTTP_STATUS.OK).json({ status: 'success', statusCode: HTTP_STATUS.OK, message: 'Reset password email successfully' });
   }
 
   async currenteUser(req: Request, res: Response): Promise<Response> {

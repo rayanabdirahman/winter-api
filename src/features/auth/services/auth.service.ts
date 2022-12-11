@@ -19,6 +19,7 @@ const logger = loggerHelper.create('[AuthService]');
 export interface AuthService {
   signUp(model: SignUpModel): Promise<{ token: string; user: UserDocument }>;
   signIn(model: SignInModel): Promise<{ token: string; user: UserDocument }>;
+  forgotPassword(model: { email: string }): Promise<{ token: string; user: AuthDocument }>;
   currentUser(user: AuthPayload): Promise<{ isUser: boolean; user: UserDocument }>;
 }
 
@@ -114,6 +115,30 @@ export default class AuthServiceImpl implements AuthService {
       } as UserDocument;
 
       return { token, user: mergedUserObj };
+    } catch (error) {
+      logger.error(`[UserService: signIn]: Unabled to sign in user: ${error}`);
+      throw error;
+    }
+  }
+
+  async forgotPassword(model: { email: string }): Promise<{ token: string; user: AuthDocument }> {
+    try {
+      // check if auth user with email exists
+      const existingAuthUser = await this.authRepository.findOneByEmail(model.email);
+      if (!existingAuthUser) {
+        throw new BadRequestError('Invalid credentials');
+      }
+
+      const token = nanoIdHelper.generateInt();
+      const expiresIn = Date.now() * 60 * 60 * 1000; // token to expire in an hour
+
+      // update auth user document to include password reset details
+      await this.authRepository.updateOneById(existingAuthUser._id as string, {
+        passwordResetToken: token,
+        passwordResetExpires: expiresIn
+      });
+
+      return { token, user: existingAuthUser };
     } catch (error) {
       logger.error(`[UserService: signIn]: Unabled to sign in user: ${error}`);
       throw error;

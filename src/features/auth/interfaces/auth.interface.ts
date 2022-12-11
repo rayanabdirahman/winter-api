@@ -27,6 +27,8 @@ export interface AuthDocument extends Document {
   password: string;
   avatarColor: string;
   createdAt: Date;
+  passwordResetToken?: string;
+  passwordResetExpires?: number | string;
   comparePassword: (password: string) => Promise<boolean>;
   hashPassword: (password: string) => Promise<string>;
 }
