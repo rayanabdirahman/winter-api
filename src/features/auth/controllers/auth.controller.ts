@@ -7,17 +7,15 @@ import { inject, injectable } from 'inversify';
 import config from '@root/config';
 import { RegistrableController } from '../../registrable.controller';
 import joiValidate from '@globals/decorators/joi.decorator';
-import signUpSchema from '@auth/validation/signup.schema';
 import { AuthService } from '@auth/services/auth.service';
 import TYPES from '@root/types';
 import { ForgotPasswordModel, ResetPasswordModel, SignInModel, SignUpModel } from '@auth/interfaces/auth.interface';
 import textTransformHelper from '@globals/helpers/textTransform';
-import signInSchema from '@auth/validation/signin.schema';
 import AuthGuard from '@root/shared/middlewares/authguard.middleware';
 import { EmailQueue, EmailQueueName } from '@services/queues/email.queue';
 import { EmailTemplateService } from '@services/emails/emailTemplate.service';
-import { emailSchema, resetPasswordSchema } from '@auth/validation/password.schema';
 import { CreatedResponse, OKResponse } from '@globals/helpers/apiResponse';
+import { forgotPasswordEmailSchema, resetPasswordSchema, signInSchema, signUpSchema } from '@auth/validation';
 
 @injectable()
 export default class AuthController implements RegistrableController {
@@ -77,7 +75,7 @@ export default class AuthController implements RegistrableController {
     return OKResponse(res, 'User signed out successfully');
   }
 
-  @joiValidate(emailSchema)
+  @joiValidate(forgotPasswordEmailSchema)
   async forgotPassword(req: Request, res: Response): Promise<Response> {
     const model: ForgotPasswordModel = { ...req.body, email: textTransformHelper.toLowerCase(req.body.email) };
 
