@@ -17,6 +17,7 @@ import TYPES from '@root/types';
 import { CustomError, IErrorResponse } from '@globals/helpers/errorHandler';
 import loggerHelper from '@globals/helpers/logger';
 import { serverAdapter } from '@services/queues/base.queue';
+import SocketIOPostHandler from '@post/sockets/post.service';
 const logger = loggerHelper.create('[setUpServer]');
 export interface IAppServer {
   start(): void;
@@ -127,6 +128,7 @@ export default class AppServer implements IAppServer {
   }
 
   private socketIOConnections(io: Server): void {
-    logger.info('logging io to fix lint error: ', io);
+    const socketIOPostHandler = new SocketIOPostHandler(io);
+    socketIOPostHandler.listen();
   }
 }
