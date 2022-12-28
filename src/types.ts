@@ -9,6 +9,8 @@ const TYPES = {
   UserQueue: Symbol('UserQueue'),
   UserWorker: Symbol('UserWorker'),
   UserCache: Symbol('UserCache'),
+  PostService: Symbol('PostService'),
+  PostRepository: Symbol('PostRepository'),
   EmailQueue: Symbol('EmailQueue'),
   EmailWorker: Symbol('EmailWorker'),
   EmailService: Symbol('EmailService'),

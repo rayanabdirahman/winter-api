@@ -16,6 +16,7 @@ import EmailServiceImpl, { EmailService } from '@services/emails/email.service';
 import EmailQueueImpl, { EmailQueue } from '@services/queues/email.queue';
 import EmailWorkerImpl, { EmailWorker } from '@workers/email.worker';
 import EmailTemplateServiceImpl, { EmailTemplateService } from '@services/emails/emailTemplate.service';
+import PostServiceImpl, { PostService } from '@post/services/post.service';
 
 const container = new Container();
 
@@ -24,6 +25,7 @@ container.bind<RegistrableController>(TYPES.Controller).to(AuthController);
 
 // services
 container.bind<AuthService>(TYPES.AuthService).to(AuthServiceImpl);
+container.bind<PostService>(TYPES.PostService).to(PostServiceImpl);
 container.bind<CloudinaryService>(TYPES.CloudinaryService).to(CloudinaryServiceImpl);
 container.bind<EmailService>(TYPES.EmailService).to(EmailServiceImpl);
 container.bind<EmailTemplateService>(TYPES.EmailTemplateService).to(EmailTemplateServiceImpl);
@@ -31,6 +33,7 @@ container.bind<EmailTemplateService>(TYPES.EmailTemplateService).to(EmailTemplat
 // repositories
 container.bind<AuthRepository>(TYPES.AuthRepository).to(AuthRepositoryImpl);
 container.bind<UserRepository>(TYPES.UserRepository).to(UserRepositoryImpl);
+// container.bind<PostRepository>(TYPES.PostRepository).to(PostRepositoryImpl);
 
 // Queues
 container.bind<AuthQueue>(TYPES.AuthQueue).to(AuthQueueImpl);
