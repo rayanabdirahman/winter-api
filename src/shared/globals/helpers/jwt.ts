@@ -15,9 +15,9 @@ const JwtHelper: JwtHelper = {
     const payload: AuthPayload = {
       userId: userId as unknown as string,
       uId: authObj.uId,
-      email: authObj.email,
+      name: authObj.name,
       username: authObj.username,
-      avatarColor: authObj.avatarColor
+      email: authObj.email
     };
 
     return await jwt.sign(payload, `${config.JWT_TOKEN}`);

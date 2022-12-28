@@ -20,7 +20,7 @@ import { AuthQueue, AuthQueueName } from '@auth/queues/auth.queue';
 import { UserQueue, UserQueueName } from '@user/queues/user.queue';
 import JwtHelper from '@globals/helpers/jwt';
 import { CloudinaryService } from '@services/cloudinary/cloudinary.service';
-import { CloudinaryResponseType } from '@globals/helpers/cloudinary';
+// import { CloudinaryResponseType } from '@globals/helpers/cloudinary';
 import { UserRepository } from '@user/repositories/user.repository';
 const logger = loggerHelper.create('[AuthService]');
 
@@ -73,10 +73,11 @@ export default class AuthServiceImpl implements AuthService {
       const authDocument = { ...model, _id, uId, createdAt } as unknown as AuthDocument;
 
       // upload image to cloudinary
-      const cloudinaryResponse = await this.cloudinaryService.upload(model.avatarImage, `${userId}`);
+      // const cloudinaryResponse = await this.cloudinaryService.upload(model.avatar, `${userId}`);
 
       // add to user redis cache
-      const userDataForRedisCache = await this.addUserToRedis(userId, authDocument, cloudinaryResponse);
+      // const userDataForRedisCache = await this.addUserToRedis(userId, authDocument, cloudinaryResponse);
+      const userDataForRedisCache = await this.addUserToRedis(userId, authDocument, model.avatar);
 
       // save auth and user documents to db using workers
       await this.addUserAuthJobs(userDataForRedisCache, authDocument);
@@ -116,9 +117,9 @@ export default class AuthServiceImpl implements AuthService {
       const mergedUserObj = {
         ...user,
         authId: existingAuthUser.id,
+        name: existingAuthUser.name,
         username: existingAuthUser.username,
         email: existingAuthUser.email,
-        avatarColor: existingAuthUser.avatarColor,
         uId: existingAuthUser.uId,
         createdAt: existingAuthUser.createdAt
       } as UserDocument;
@@ -192,9 +193,11 @@ export default class AuthServiceImpl implements AuthService {
     }
   }
 
-  private async addUserToRedis(userId: ObjectId, authDocument: AuthDocument, cloudinaryResponse: CloudinaryResponseType) {
+  // private async addUserToRedis(userId: ObjectId, authDocument: AuthDocument, cloudinaryResponse: CloudinaryResponseType) {
+  private async addUserToRedis(userId: ObjectId, authDocument: AuthDocument, avatar: string) {
     const userDataForRedisCache = this.formateUserDataForRedisCache(userId, authDocument);
-    userDataForRedisCache.profilePicture = `https://res.cloudinary.com/daqewh79b/image/upload/v${cloudinaryResponse?.version}/${userId}.png`;
+    // userDataForRedisCache.avatar = `https://res.cloudinary.com/daqewh79b/image/upload/v${cloudinaryResponse?.version}/${userId}.png`;
+    userDataForRedisCache.avatar = avatar;
     await this.userCache.save(`${userId}`, authDocument.uId, userDataForRedisCache);
     return userDataForRedisCache;
   }
@@ -216,11 +219,11 @@ export default class AuthServiceImpl implements AuthService {
       _id: userId,
       authId: data._id,
       uId: data.uId,
+      name: data.name,
       username: data.username,
       email: data.email,
-      password: data.password,
-      avatarColor: data.avatarColor,
-      profilePicture: '',
+      // password: data.password,
+      avatar: '',
       blocked: [],
       blockedBy: [],
       bgImage: '',

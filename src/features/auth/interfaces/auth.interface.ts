@@ -13,19 +13,19 @@ declare global {
 export interface AuthPayload {
   userId: string;
   uId: string;
-  email: string;
+  name: string;
   username: string;
-  avatarColor: string;
+  email: string;
   iat?: number;
 }
 
 export interface AuthDocument extends Document {
   _id: string | ObjectId;
   uId: string;
+  name: string;
   username: string;
   email: string;
   password: string;
-  avatarColor: string;
   createdAt: Date;
   passwordResetToken?: string;
   passwordResetExpires?: number | string;
@@ -33,21 +33,12 @@ export interface AuthDocument extends Document {
   hashPassword: (password: string) => Promise<string>;
 }
 
-// export interface SignUpData {
-//   _id: ObjectId;
-//   uId: string;
-//   email: string;
-//   password: string;
-//   username: string;
-//   avatarColor: string;
-// }
-
 export interface SignUpModel {
+  name: string;
   username: string;
   email: string;
   password: string;
-  avatarColor: string;
-  avatarImage: string;
+  avatar: string;
 }
 
 export interface SignInModel {

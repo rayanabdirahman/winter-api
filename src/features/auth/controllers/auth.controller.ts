@@ -50,7 +50,9 @@ export default class AuthController implements RegistrableController {
 
   @joiValidate(signUpSchema)
   async signUp(req: Request, res: Response): Promise<Response> {
-    const model: SignUpModel = { ...req.body, email: textTransformHelper.toLowerCase(req.body.email) };
+    const avatar = 'https://res.cloudinary.com/daqewh79b/image/upload/v1672254768/default_avatar.png';
+
+    const model: SignUpModel = { ...req.body, email: textTransformHelper.toLowerCase(req.body.email), avatar };
 
     const { token, user } = await this.authService.signUp(model);
 

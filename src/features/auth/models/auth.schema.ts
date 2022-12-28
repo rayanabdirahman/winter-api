@@ -4,11 +4,11 @@ import { AuthDocument } from '@auth/interfaces/auth.interface';
 
 const AuthSchema: mongoose.Schema = new mongoose.Schema(
   {
+    name: { type: String, required: true, trim: true },
     username: { type: String, required: true, trim: true, unique: true },
     uId: { type: String, trim: true, unique: true },
     email: { type: String, required: true, trim: true, unique: true },
     password: { type: String, required: true },
-    avatarColor: { type: String },
     createdAt: { type: Date, default: Date.now },
     passwordResetToken: { type: String, default: '' },
     passwordResetExpires: { type: Number }

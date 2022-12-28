@@ -5,10 +5,10 @@ export interface UserDocument extends Document {
   _id: string | ObjectId;
   authId: string | ObjectId;
   uId?: string;
+  name?: string;
   username?: string;
   email?: string;
   password?: string;
-  avatarColor?: string;
   postsCount: number;
   blocked: mongoose.Types.ObjectId[];
   blockedBy: mongoose.Types.ObjectId[];
@@ -18,35 +18,11 @@ export interface UserDocument extends Document {
   social: SocialLinks;
   bgImage: string;
   bgImageId: string;
-  profilePicture: string;
+  avatar: string;
   // passwordResetToken?: string;
   // passwordResetExpires?: number | string;
   createdAt?: Date;
 }
-
-// TODO: Can possibly delete if not in use
-// export interface User {
-//   _id: string | ObjectId;
-//   authId: string | ObjectId;
-//   uId: string;
-//   username: string;
-//   email: string;
-//   password?: string;
-//   avatarColor: string;
-//   postsCount: number;
-//   blocked: mongoose.Types.ObjectId[];
-//   blockedBy: mongoose.Types.ObjectId[];
-//   followersCount: number;
-//   followingCount: number;
-//   notifications: Notification;
-//   social: SocialLinks;
-//   bgImage: string;
-//   bgImageId: string;
-//   profilePicture: string;
-//   passwordResetToken?: string;
-//   passwordResetExpires?: number | string;
-//   createdAt: Date;
-// }
 
 export interface ResetPassword {
   username: string;

@@ -43,7 +43,6 @@ export default class UserRepositoryImpl implements UserRepository {
       uId: 'authId.uId',
       username: 'authId.username',
       email: '$authId.email',
-      avatarColor: '$authId.avatarColor',
       createdAt: '$authId.createdAt',
       postsCount: 1,
       blocked: 1,
@@ -54,7 +53,7 @@ export default class UserRepositoryImpl implements UserRepository {
       social: 1,
       bgImage: 1,
       bgImageId: 1,
-      profilePicture: 1
+      avatar: 1
     };
   }
 }

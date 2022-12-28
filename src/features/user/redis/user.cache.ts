@@ -56,7 +56,7 @@ export default class UserCacheImpl extends RedisBaseCache implements UserCache {
       response.followingCount = jsonHelper.parse(`${response.followingCount}`);
       response.bgImageId = jsonHelper.parse(`${response.bgImageId}`);
       response.bgImage = jsonHelper.parse(`${response.bgImage}`);
-      response.profilePicture = jsonHelper.parse(`${response.profilePicture}`);
+      response.avatar = jsonHelper.parse(`${response.avatar}`);
 
       return response;
     } catch (err) {
