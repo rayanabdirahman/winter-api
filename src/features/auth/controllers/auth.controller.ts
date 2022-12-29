@@ -84,7 +84,7 @@ export default class AuthController implements RegistrableController {
     const { token, user } = await this.authService.forgotPassword(model);
 
     // send forgot password email
-    const resetLink = `${config.CLIENT_URL}/reset-password?token=${token}`;
+    const resetLink = `${config.CLIENT_URL}/auth/reset-password?token=${token}`;
     const template = this.emailTemplateService.getForgotPassword(user.username as string, resetLink);
 
     this.emailQueue.addEmailJob(EmailQueueName.FORGOT_PASSWORD, {
